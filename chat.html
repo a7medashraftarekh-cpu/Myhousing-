@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الرسائل | سكني</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <header class="header">
+    <div class="header-container">
+      <a href="index.html" class="logo">
+        <i class="fas fa-home"></i>
+        <span>سكني</span>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html">الرئيسية</a></li>
+          <li><a href="favorites.html">المفضلة</a></li>
+          <li><a href="chat.html" class="active">الرسائل</a></li>
+          <li><a href="dashboard.html">لوحة التحكم</a></li>
+        </ul>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn theme-toggle" id="themeToggle" title="تغيير الوضع">
+          <i class="fas fa-moon"></i>
+        </button>
+        <div class="user-menu" id="userMenu">
+          <img src="" alt="User" class="user-avatar" id="userAvatar">
+          <div class="dropdown" id="userDropdown">
+            <a href="dashboard.html" class="dropdown-item"><i class="fas fa-user"></i> حسابي</a>
+            <a href="favorites.html" class="dropdown-item"><i class="fas fa-heart"></i> المفضلة</a>
+            <a href="bookings.html" class="dropdown-item"><i class="fas fa-calendar-check"></i> حجوزاتي</a>
+            <a href="chat.html" class="dropdown-item"><i class="fas fa-comments"></i> الرسائل</a>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="chat-page">
+    <div class="chat-container">
+      <div class="chat-sidebar">
+        <div class="chat-sidebar-header">
+          <h2>المحادثات</h2>
+        </div>
+        <div class="chat-list" id="chatList">
+          <!-- Chat list will be loaded here -->
+        </div>
+      </div>
+
+      <div class="chat-main">
+        <div class="chat-header" id="chatHeader">
+          <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User" id="chatHeaderAvatar">
+          <div>
+            <h3 id="chatHeaderName">اختر محادثة</h3>
+            <p id="chatHeaderStatus">--</p>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--gray-400);">
+            <p>اختر محادثة من القائمة لبدء الدردشة</p>
+          </div>
+        </div>
+
+        <div class="chat-input" id="chatInputArea" style="display: none;">
+          <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." onkeypress="if(event.key==='Enter') sendMessage()">
+          <button class="btn btn-primary" onclick="sendMessage()">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/db.js"></script>
+  <script>
+    let currentUser = null;
+    let currentChat = null;
+    let currentChatId = null;
+    let messagesInterval = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initDB();
+      await generateDemoData();
+
+      currentUser = getCurrentUser();
+      if (!currentUser) {
+        window.location.href = 'auth.html';
+        return;
+      }
+
+      updateHeader();
+      await loadChatList();
+      setupTheme();
+
+      // Check for URL params to open specific chat
+      const urlParams = new URLSearchParams(window.location.search);
+      const ownerId = urlParams.get('owner');
+      const propertyId = urlParams.get('property');
+
+      if (ownerId) {
+        await startChatWithOwner(ownerId, propertyId);
+      }
+    });
+
+    function updateHeader() {
+      document.getElementById('userAvatar').src = currentUser.avatar;
+    }
+
+    document.getElementById('userAvatar')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('userDropdown').classList.toggle('show');
+    });
+
+    document.addEventListener('click', () => {
+      document.getElementById('userDropdown')?.classList.remove('show');
+    });
+
+    async function loadChatList() {
+      const chats = await getUserChats(currentUser.id);
+      const list = document.getElementById('chatList');
+
+      if (chats.length === 0) {
+        list.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--gray-400);"><p>لا توجد محادثات</p></div>';
+        return;
+      }
+
+      list.innerHTML = '';
+
+      for (const chat of chats) {
+        const otherUserId = chat.lastMessage.senderId === currentUser.id ? chat.lastMessage.receiverId : chat.lastMessage.senderId;
+        const otherUser = await getById('users', otherUserId);
+
+        const item = document.createElement('div');
+        item.className = `chat-item ${chat.unread > 0 ? 'unread' : ''}`;
+        item.onclick = () => openChat(chat.chatId, otherUser);
+
+        item.innerHTML = `
+          <img src="${otherUser?.avatar || 'https://ui-avatars.com/api/?name=User&background=random'}" alt="${otherUser?.name || 'User'}">
+          <div class="chat-item-info">
+            <div class="chat-item-header">
+              <span class="chat-item-name">${otherUser?.name || 'مستخدم'}</span>
+              <span class="chat-item-time">${formatTime(chat.lastMessage.createdAt)}</span>
+            </div>
+            <p class="chat-item-preview">${chat.lastMessage.content}</p>
+          </div>
+          ${chat.unread > 0 ? `<span class="unread-badge">${chat.unread}</span>` : ''}
+        `;
+
+        list.appendChild(item);
+      }
+    }
+
+    async function openChat(chatId, otherUser) {
+      currentChatId = chatId;
+      currentChat = otherUser;
+
+      document.getElementById('chatHeaderAvatar').src = otherUser?.avatar || 'https://ui-avatars.com/api/?name=User&background=random';
+      document.getElementById('chatHeaderName').textContent = otherUser?.name || 'مستخدم';
+      document.getElementById('chatHeaderStatus').textContent = 'متصل الآن';
+      document.getElementById('chatInputArea').style.display = 'flex';
+
+      // Mark messages as read
+      const messages = await getChatMessages(chatId);
+      for (const msg of messages) {
+        if (msg.receiverId === currentUser.id && !msg.read) {
+          msg.read = true;
+          await put('messages', msg);
+        }
+      }
+
+      await loadMessages();
+
+      // Poll for new messages
+      if (messagesInterval) clearInterval(messagesInterval);
+      messagesInterval = setInterval(loadMessages, 3000);
+    }
+
+    async function loadMessages() {
+      if (!currentChatId) return;
+
+      const messages = await getChatMessages(currentChatId);
+      const container = document.getElementById('chatMessages');
+
+      container.innerHTML = '';
+
+      for (const msg of messages) {
+        const isSent = msg.senderId === currentUser.id;
+        const user = isSent ? currentUser : currentChat;
+
+        const messageEl = document.createElement('div');
+        messageEl.className = `message ${isSent ? 'sent' : ''}`;
+        messageEl.innerHTML = `
+          <img src="${user?.avatar || 'https://ui-avatars.com/api/?name=User&background=random'}" alt="" class="message-avatar">
+          <div>
+            <div class="message-content">${msg.content}</div>
+            <div class="message-time">${formatTime(msg.createdAt)} ${isSent ? (msg.read ? '<i class="fas fa-check-double" style="color: var(--primary);"></i>' : '<i class="fas fa-check"></i>') : ''}</div>
+          </div>
+        `;
+
+        container.appendChild(messageEl);
+      }
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const content = input.value.trim();
+
+      if (!content || !currentChatId || !currentChat) return;
+
+      await add('messages', {
+        id: `msg_${Date.now()}`,
+        chatId: currentChatId,
+        senderId: currentUser.id,
+        senderName: currentUser.name,
+        senderAvatar: currentUser.avatar,
+        receiverId: currentChat.id,
+        content: content,
+        createdAt: new Date().toISOString(),
+        read: false
+      });
+
+      input.value = '';
+      await loadMessages();
+      await loadChatList();
+    }
+
+    async function startChatWithOwner(ownerId, propertyId) {
+      const owner = await getById('users', ownerId);
+      if (!owner) return;
+
+      const chatId = [currentUser.id, ownerId].sort().join('_');
+
+      // Check if chat exists
+      const existingMessages = await getChatMessages(chatId);
+      if (existingMessages.length === 0 && propertyId) {
+        // Create initial message about property
+        const property = await getById('properties', propertyId);
+        if (property) {
+          await add('messages', {
+            id: `msg_${Date.now()}`,
+            chatId: chatId,
+            senderId: currentUser.id,
+            senderName: currentUser.name,
+            senderAvatar: currentUser.avatar,
+            receiverId: ownerId,
+            content: `مرحباً، أنا مهتم بالعقار: ${property.title}. هل لا يزال متاحاً؟`,
+            createdAt: new Date().toISOString(),
+            read: false
+          });
+        }
+      }
+
+      await openChat(chatId, owner);
+    }
+
+    function formatTime(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diff = now - date;
+
+      if (diff < 60000) return 'الآن';
+      if (diff < 3600000) return `${Math.floor(diff / 60000)} دقيقة`;
+      if (diff < 86400000) return `${Math.floor(diff / 3600000)} ساعة`;
+      return date.toLocaleDateString('ar-EG');
+    }
+
+    function setupTheme() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+      }
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          document.documentElement.removeAttribute('data-theme');
+          localStorage.setItem('theme', 'light');
+          document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+          document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+        }
+      });
+    }
+
+    window.addEventListener('beforeunload', () => {
+      if (messagesInterval) clearInterval(messagesInterval);
+    });
+  </script>
+</body>
+</html>

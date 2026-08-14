@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول | سكني</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-container">
+      <div class="auth-logo">
+        <a href="index.html"><i class="fas fa-home"></i> سكني</a>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="showTab('login')">تسجيل الدخول</button>
+        <button class="auth-tab" onclick="showTab('register')">حساب جديد</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="alert alert-danger" id="loginAlert"></div>
+
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" class="form-input" id="loginEmail" required placeholder="example@email.com">
+        </div>
+
+        <div class="form-group">
+          <label>كلمة المرور</label>
+          <input type="password" class="form-input" id="loginPassword" required placeholder="••••••••">
+        </div>
+
+        <div class="form-check" style="margin-bottom: 1.5rem;">
+          <input type="checkbox" id="rememberMe">
+          <label for="rememberMe">تذكرني</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+          <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+        </button>
+
+        <div style="margin-top: 1rem; text-align: center;">
+          <p style="font-size: 0.875rem; color: var(--gray-500);">حسابات تجريبية:</p>
+          <p style="font-size: 0.75rem; color: var(--gray-400); margin-top: 0.25rem;">
+            طالب: student1@example.com / password123<br>
+            مالك: owner1@example.com / password123<br>
+            أدمن: admin@myhousing.com / admin123
+          </p>
+        </div>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
+        <div class="alert alert-danger" id="registerAlert"></div>
+
+        <div class="form-group">
+          <label>نوع الحساب</label>
+          <select class="form-select" id="registerRole" required>
+            <option value="student">طالب</option>
+            <option value="owner">مالك عقار</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>الاسم الأول</label>
+            <input type="text" class="form-input" id="registerFirstName" required>
+          </div>
+          <div class="form-group">
+            <label>الاسم الأخير</label>
+            <input type="text" class="form-input" id="registerLastName" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" class="form-input" id="registerEmail" required placeholder="example@email.com">
+        </div>
+
+        <div class="form-group">
+          <label>رقم الهاتف</label>
+          <input type="tel" class="form-input" id="registerPhone" required placeholder="01xxxxxxxxx">
+        </div>
+
+        <div class="form-group" id="universityGroup">
+          <label>الجامعة</label>
+          <input type="text" class="form-input" id="registerUniversity" placeholder="اسم الجامعة">
+        </div>
+
+        <div class="form-group">
+          <label>كلمة المرور</label>
+          <input type="password" class="form-input" id="registerPassword" required minlength="6" placeholder="6 أحرف على الأقل">
+        </div>
+
+        <div class="form-group">
+          <label>تأكيد كلمة المرور</label>
+          <input type="password" class="form-input" id="registerConfirmPassword" required placeholder="••••••••">
+        </div>
+
+        <div class="form-check" style="margin-bottom: 1.5rem;">
+          <input type="checkbox" id="agreeTerms" required>
+          <label for="agreeTerms">أوافق على <a href="#">شروط الاستخدام</a> و <a href="#">سياسة الخصوصية</a></label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+          <i class="fas fa-user-plus"></i> إنشاء حساب
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>بالعودة إلى <a href="index.html">الصفحة الرئيسية</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initDB();
+      await generateDemoData();
+
+      // Check if already logged in
+      const user = getCurrentUser();
+      if (user) {
+        window.location.href = 'index.html';
+      }
+
+      setupTheme();
+    });
+
+    function showTab(tab) {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+
+      if (tab === 'login') {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('registerForm').style.display = 'none';
+      } else {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'block';
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const alert = document.getElementById('loginAlert');
+
+      try {
+        const user = await authenticateUser(email, password);
+        if (user) {
+          setCurrentUser(user);
+          window.location.href = 'index.html';
+        } else {
+          alert.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+          alert.classList.add('show');
+        }
+      } catch (error) {
+        alert.textContent = 'حدث خطأ. يرجى المحاولة مرة أخرى.';
+        alert.classList.add('show');
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+
+      const alert = document.getElementById('registerAlert');
+
+      const role = document.getElementById('registerRole').value;
+      const firstName = document.getElementById('registerFirstName').value;
+      const lastName = document.getElementById('registerLastName').value;
+      const email = document.getElementById('registerEmail').value;
+      const phone = document.getElementById('registerPhone').value;
+      const university = document.getElementById('registerUniversity').value;
+      const password = document.getElementById('registerPassword').value;
+      const confirmPassword = document.getElementById('registerConfirmPassword').value;
+
+      if (password !== confirmPassword) {
+        alert.textContent = 'كلمتا المرور غير متطابقتين';
+        alert.classList.add('show');
+        return;
+      }
+
+      try {
+        const userData = {
+          id: `${role}_${Date.now()}`,
+          name: `${firstName} ${lastName}`,
+          email: email,
+          phone: phone,
+          password: password,
+          role: role,
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName + ' ' + lastName)}&background=random`,
+          university: role === 'student' ? university : null,
+          createdAt: new Date().toISOString()
+        };
+
+        await registerUser(userData);
+        setCurrentUser(userData);
+        window.location.href = 'index.html';
+      } catch (error) {
+        alert.textContent = error.message === 'Email already exists' ? 'البريد الإلكتروني مستخدم بالفعل' : 'حدث خطأ. يرجى المحاولة مرة أخرى.';
+        alert.classList.add('show');
+      }
+    }
+
+    document.getElementById('registerRole').addEventListener('change', (e) => {
+      document.getElementById('universityGroup').style.display = e.target.value === 'student' ? 'block' : 'none';
+    });
+
+    function setupTheme() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    }
+  </script>
+</body>
+</html>
