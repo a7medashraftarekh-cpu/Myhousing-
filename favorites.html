@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المفضلة | سكني</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <header class="header">
+    <div class="header-container">
+      <a href="index.html" class="logo"><i class="fas fa-home"></i><span>سكني</span></a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html">الرئيسية</a></li>
+          <li><a href="favorites.html" class="active">المفضلة</a></li>
+          <li><a href="chat.html">الرسائل</a></li>
+          <li><a href="dashboard.html">لوحة التحكم</a></li>
+        </ul>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+        <div class="user-menu" id="userMenu">
+          <img src="" alt="User" class="user-avatar" id="userAvatar">
+          <div class="dropdown" id="userDropdown">
+            <a href="dashboard.html" class="dropdown-item"><i class="fas fa-user"></i> حسابي</a>
+            <a href="favorites.html" class="dropdown-item"><i class="fas fa-heart"></i> المفضلة</a>
+            <a href="bookings.html" class="dropdown-item"><i class="fas fa-calendar-check"></i> حجوزاتي</a>
+            <a href="chat.html" class="dropdown-item"><i class="fas fa-comments"></i> الرسائل</a>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container" style="grid-template-columns: 1fr;">
+    <div class="content-area">
+      <div class="section-header">
+        <h2>المفضلة (<span id="favCount">0</span>)</h2>
+      </div>
+      <div class="properties-grid" id="favoritesGrid"></div>
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <i class="fas fa-heart"></i>
+        <h3>لا توجد مفضلات</h3>
+        <p>ابحث عن عقارات وأضفها للمفضلة</p>
+        <a href="index.html" class="btn btn-primary" style="margin-top: 1rem;">استكشف العقارات</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-section"><h3>عن سكني</h3><p>منصة سكني هي أكبر منصة للبحث عن السكن الطلابي في مصر.</p></div>
+      <div class="footer-section"><h3>روابط سريعة</h3><ul class="footer-links"><li><a href="index.html">الرئيسية</a></li><li><a href="auth.html">تسجيل الدخول</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><p>© 2026 سكني. جميع الحقوق محفوظة.</p></div>
+  </footer>
+
+  <script src="js/db.js"></script>
+  <script>
+    let currentUser = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initDB();
+      await generateDemoData();
+      currentUser = getCurrentUser();
+      if (!currentUser) { window.location.href = 'auth.html'; return; }
+      updateHeader();
+      await loadFavorites();
+      setupTheme();
+    });
+
+    function updateHeader() {
+      document.getElementById('userAvatar').src = currentUser.avatar;
+    }
+
+    document.getElementById('userAvatar')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('userDropdown').classList.toggle('show');
+    });
+    document.addEventListener('click', () => document.getElementById('userDropdown')?.classList.remove('show'));
+
+    async function loadFavorites() {
+      const favorites = await getUserFavorites(currentUser.id);
+      const grid = document.getElementById('favoritesGrid');
+      const emptyState = document.getElementById('emptyState');
+
+      document.getElementById('favCount').textContent = favorites.length;
+
+      if (favorites.length === 0) {
+        grid.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      grid.innerHTML = '';
+
+      for (const fav of favorites) {
+        const prop = await getById('properties', fav.propertyId);
+        if (!prop) continue;
+
+        const card = document.createElement('div');
+        card.className = 'property-card';
+        card.onclick = (e) => { if (!e.target.closest('.favorite-btn')) window.location.href = `property.html?id=${prop.id}`; };
+
+        card.innerHTML = `
+          <div class="property-image">
+            <img src="${prop.images[0]}" alt="${prop.title}" loading="lazy">
+            <span class="property-badge">${prop.typeName}</span>
+            <button class="favorite-btn active" onclick="removeFavorite('${fav.id}', this)"><i class="fas fa-heart"></i></button>
+          </div>
+          <div class="property-content">
+            <div class="property-type">${prop.typeName}</div>
+            <h3 class="property-title">${prop.title}</h3>
+            <div class="property-location"><i class="fas fa-map-marker-alt"></i><span>${prop.location}</span></div>
+            <div class="property-features">
+              <span><i class="fas fa-bed"></i> ${prop.rooms} غرف</span>
+              <span><i class="fas fa-user-friends"></i> ${prop.studentsPerRoom} طالب</span>
+              ${prop.internet ? '<span><i class="fas fa-wifi"></i> واي فاي</span>' : ''}
+            </div>
+            <div class="property-footer">
+              <div class="property-price">${prop.price.toLocaleString()} <span>ج.م/شهر</span></div>
+              <div class="property-rating"><i class="fas fa-star"></i><span>${prop.rating}</span></div>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      }
+    }
+
+    async function removeFavorite(favId, btn) {
+      await remove('favorites', favId);
+      btn.closest('.property-card').remove();
+      const count = parseInt(document.getElementById('favCount').textContent) - 1;
+      document.getElementById('favCount').textContent = count;
+      if (count === 0) document.getElementById('emptyState').style.display = 'block';
+      showToast('تمت الإزالة من المفضلة', 'success');
+    }
+
+    function setupTheme() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+      }
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          document.documentElement.removeAttribute('data-theme');
+          localStorage.setItem('theme', 'light');
+          document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+          document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+        }
+      });
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-circle' };
+      toast.innerHTML = `<i class="fas ${icons[type]}"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+  </script>
+</body>
+</html>

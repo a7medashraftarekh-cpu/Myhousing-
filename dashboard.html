@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم | سكني</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <header class="header">
+    <div class="header-container">
+      <a href="index.html" class="logo">
+        <i class="fas fa-home"></i>
+        <span>سكني</span>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html">الرئيسية</a></li>
+          <li><a href="favorites.html">المفضلة</a></li>
+          <li><a href="chat.html">الرسائل</a></li>
+          <li><a href="dashboard.html" class="active">لوحة التحكم</a></li>
+        </ul>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn theme-toggle" id="themeToggle" title="تغيير الوضع">
+          <i class="fas fa-moon"></i>
+        </button>
+        <div class="user-menu" id="userMenu">
+          <img src="" alt="User" class="user-avatar" id="userAvatar">
+          <div class="dropdown" id="userDropdown">
+            <a href="dashboard.html" class="dropdown-item"><i class="fas fa-user"></i> حسابي</a>
+            <a href="favorites.html" class="dropdown-item"><i class="fas fa-heart"></i> المفضلة</a>
+            <a href="bookings.html" class="dropdown-item"><i class="fas fa-calendar-check"></i> حجوزاتي</a>
+            <a href="chat.html" class="dropdown-item"><i class="fas fa-comments"></i> الرسائل</a>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard">
+    <aside class="dashboard-sidebar">
+      <div class="dashboard-user">
+        <img src="" alt="User" id="sidebarAvatar">
+        <h3 id="sidebarName">--</h3>
+        <p id="sidebarRole">--</p>
+      </div>
+      <ul class="dashboard-nav" id="dashboardNav">
+        <!-- Nav items will be loaded based on role -->
+      </ul>
+    </aside>
+
+    <div class="dashboard-content">
+      <div class="dashboard-header">
+        <h1 id="dashboardTitle">لوحة التحكم</h1>
+        <div id="headerActions">
+          <!-- Actions will be loaded based on role -->
+        </div>
+      </div>
+
+      <div class="stats-grid" id="statsGrid">
+        <!-- Stats will be loaded dynamically -->
+      </div>
+
+      <div id="dashboardSections">
+        <!-- Sections will be loaded based on role -->
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-section">
+        <h3>عن سكني</h3>
+        <p>منصة سكني هي أكبر منصة للبحث عن السكن الطلابي في مصر.</p>
+      </div>
+      <div class="footer-section">
+        <h3>روابط سريعة</h3>
+        <ul class="footer-links">
+          <li><a href="index.html">الرئيسية</a></li>
+          <li><a href="auth.html">تسجيل الدخول</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>الدعم</h3>
+        <ul class="footer-links">
+          <li><a href="#">مركز المساعدة</a></li>
+          <li><a href="#">الأسئلة الشائعة</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 سكني. جميع الحقوق محفوظة.</p>
+    </div>
+  </footer>
+
+  <script src="js/db.js"></script>
+  <script>
+    let currentUser = null;
+    let currentTab = 'overview';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initDB();
+      await generateDemoData();
+
+      currentUser = getCurrentUser();
+      if (!currentUser) {
+        window.location.href = 'auth.html';
+        return;
+      }
+
+      updateHeader();
+      loadDashboard();
+      setupTheme();
+    });
+
+    function updateHeader() {
+      document.getElementById('userAvatar').src = currentUser.avatar;
+      document.getElementById('sidebarAvatar').src = currentUser.avatar;
+      document.getElementById('sidebarName').textContent = currentUser.name;
+
+      const roleNames = { student: 'طالب', owner: 'مالك عقار', admin: 'مدير' };
+      document.getElementById('sidebarRole').textContent = roleNames[currentUser.role] || currentUser.role;
+    }
+
+    document.getElementById('userAvatar')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('userDropdown').classList.toggle('show');
+    });
+
+    document.addEventListener('click', () => {
+      document.getElementById('userDropdown')?.classList.remove('show');
+    });
+
+    async function loadDashboard() {
+      const nav = document.getElementById('dashboardNav');
+      const sections = document.getElementById('dashboardSections');
+      const statsGrid = document.getElementById('statsGrid');
+      const headerActions = document.getElementById('headerActions');
+
+      if (currentUser.role === 'student') {
+        nav.innerHTML = `
+          <li><a href="#" class="active" onclick="showTab('overview', this)"><i class="fas fa-chart-line"></i> نظرة عامة</a></li>
+          <li><a href="#" onclick="showTab('bookings', this)"><i class="fas fa-calendar-check"></i> حجوزاتي</a></li>
+          <li><a href="#" onclick="showTab('favorites', this)"><i class="fas fa-heart"></i> المفضلة</a></li>
+          <li><a href="#" onclick="showTab('messages', this)"><i class="fas fa-comments"></i> الرسائل</a></li>
+          <li><a href="#" onclick="showTab('profile', this)"><i class="fas fa-user"></i> الملف الشخصي</a></li>
+        `;
+
+        await loadStudentDashboard(statsGrid, sections, headerActions);
+      } else if (currentUser.role === 'owner') {
+        nav.innerHTML = `
+          <li><a href="#" class="active" onclick="showTab('overview', this)"><i class="fas fa-chart-line"></i> نظرة عامة</a></li>
+          <li><a href="#" onclick="showTab('properties', this)"><i class="fas fa-home"></i> عقاراتي</a></li>
+          <li><a href="#" onclick="showTab('bookings', this)"><i class="fas fa-calendar-check"></i> طلبات الحجز</a></li>
+          <li><a href="#" onclick="showTab('messages', this)"><i class="fas fa-comments"></i> الرسائل</a></li>
+          <li><a href="#" onclick="showTab('profile', this)"><i class="fas fa-user"></i> الملف الشخصي</a></li>
+        `;
+
+        headerActions.innerHTML = `<a href="property.html?action=add" class="btn btn-primary"><i class="fas fa-plus"></i> إضافة عقار</a>`;
+        await loadOwnerDashboard(statsGrid, sections);
+      } else if (currentUser.role === 'admin') {
+        nav.innerHTML = `
+          <li><a href="#" class="active" onclick="showTab('overview', this)"><i class="fas fa-chart-line"></i> نظرة عامة</a></li>
+          <li><a href="#" onclick="showTab('users', this)"><i class="fas fa-users"></i> المستخدمين</a></li>
+          <li><a href="#" onclick="showTab('properties', this)"><i class="fas fa-home"></i> العقارات</a></li>
+          <li><a href="#" onclick="showTab('bookings', this)"><i class="fas fa-calendar-check"></i> الحجوزات</a></li>
+          <li><a href="#" onclick="showTab('reviews', this)"><i class="fas fa-star"></i> التقييمات</a></li>
+        `;
+
+        await loadAdminDashboard(statsGrid, sections);
+      }
+    }
+
+    async function loadStudentDashboard(statsGrid, sections, headerActions) {
+      const bookings = await getUserBookings(currentUser.id);
+      const favorites = await getUserFavorites(currentUser.id);
+      const messages = await getUserChats(currentUser.id);
+
+      statsGrid.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div>
+          <div class="stat-info"><h3>${bookings.length}</h3><p>حجوزاتي</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-heart"></i></div>
+          <div class="stat-info"><h3>${favorites.length}</h3><p>المفضلة</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-comments"></i></div>
+          <div class="stat-info"><h3>${messages.length}</h3><p>محادثات</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange"><i class="fas fa-star"></i></div>
+          <div class="stat-info"><h3>${bookings.filter(b => b.status === 'confirmed').length}</h3><p>حجوزات ناجحة</p></div>
+        </div>
+      `;
+
+      sections.innerHTML = `
+        <div class="table-container" style="margin-bottom: 2rem;">
+          <div class="table-header"><h3>آخر الحجوزات</h3><a href="bookings.html" class="btn btn-sm btn-outline">عرض الكل</a></div>
+          <table class="data-table">
+            <thead><tr><th>العقار</th><th>التاريخ</th><th>السعر</th><th>الحالة</th></tr></thead>
+            <tbody>${bookings.slice(0, 5).map(b => `
+              <tr>
+                <td><div class="table-property"><img src="${b.propertyImage}" alt=""><div><h4>${b.propertyTitle}</h4></div></div></td>
+                <td>${new Date(b.createdAt).toLocaleDateString('ar-EG')}</td>
+                <td>${b.totalPrice.toLocaleString()} ج.م</td>
+                <td><span class="status-badge status-${b.status}">${getStatusName(b.status)}</span></td>
+              </tr>
+            `).join('')}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    async function loadOwnerDashboard(statsGrid, sections) {
+      const properties = await getAll('properties');
+      const myProperties = properties.filter(p => p.ownerId === currentUser.id);
+      const bookings = await getOwnerBookings(currentUser.id);
+
+      statsGrid.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-home"></i></div>
+          <div class="stat-info"><h3>${myProperties.length}</h3><p>عقاراتي</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-calendar-check"></i></div>
+          <div class="stat-info"><h3>${bookings.length}</h3><p>طلبات الحجز</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange"><i class="fas fa-eye"></i></div>
+          <div class="stat-info"><h3>${myProperties.reduce((sum, p) => sum + (p.views || 0), 0).toLocaleString()}</h3><p>إجمالي المشاهدات</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-money-bill-wave"></i></div>
+          <div class="stat-info"><h3>${bookings.filter(b => b.status === 'confirmed').reduce((sum, b) => sum + b.totalPrice, 0).toLocaleString()} ج.م</h3><p>إيرادات</p></div>
+        </div>
+      `;
+
+      sections.innerHTML = `
+        <div class="table-container" style="margin-bottom: 2rem;">
+          <div class="table-header"><h3>عقاراتي</h3></div>
+          <table class="data-table">
+            <thead><tr><th>العقار</th><th>السعر</th><th>المشاهدات</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+            <tbody>${myProperties.map(p => `
+              <tr>
+                <td><div class="table-property"><img src="${p.images[0]}" alt=""><div><h4>${p.title}</h4><p>${p.location}</p></div></div></td>
+                <td>${p.price.toLocaleString()} ج.م</td>
+                <td>${p.views || 0}</td>
+                <td><span class="status-badge status-${p.status}">${p.status === 'active' ? 'نشط' : 'معلق'}</span></td>
+                <td><button class="btn btn-sm btn-outline" onclick="window.location.href='property.html?id=${p.id}'">عرض</button></td>
+              </tr>
+            `).join('')}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    async function loadAdminDashboard(statsGrid, sections) {
+      const users = await getAll('users');
+      const properties = await getAll('properties');
+      const bookings = await getAll('bookings');
+      const reviews = await getAll('reviews');
+
+      statsGrid.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+          <div class="stat-info"><h3>${users.length}</h3><p>المستخدمين</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-home"></i></div>
+          <div class="stat-info"><h3>${properties.length}</h3><p>العقارات</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div>
+          <div class="stat-info"><h3>${bookings.length}</h3><p>الحجوزات</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-star"></i></div>
+          <div class="stat-info"><h3>${reviews.length}</h3><p>التقييمات</p></div>
+        </div>
+      `;
+
+      sections.innerHTML = `
+        <div class="table-container" style="margin-bottom: 2rem;">
+          <div class="table-header"><h3>آخر المستخدمين</h3></div>
+          <table class="data-table">
+            <thead><tr><th>المستخدم</th><th>البريد</th><th>الدور</th><th>تاريخ التسجيل</th></tr></thead>
+            <tbody>${users.slice(0, 10).map(u => `
+              <tr>
+                <td><div class="table-property"><img src="${u.avatar}" alt="" style="border-radius: 50%;"><div><h4>${u.name}</h4></div></div></td>
+                <td>${u.email}</td>
+                <td><span class="status-badge status-${u.role === 'admin' ? 'confirmed' : u.role === 'owner' ? 'pending' : 'active'}">${u.role === 'admin' ? 'مدير' : u.role === 'owner' ? 'مالك' : 'طالب'}</span></td>
+                <td>${new Date(u.createdAt).toLocaleDateString('ar-EG')}</td>
+              </tr>
+            `).join('')}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function showTab(tab, element) {
+      document.querySelectorAll('.dashboard-nav a').forEach(a => a.classList.remove('active'));
+      element.classList.add('active');
+      currentTab = tab;
+      // Reload content based on tab
+      loadDashboard();
+    }
+
+    function getStatusName(status) {
+      const names = { pending: 'معلق', confirmed: 'مؤكد', cancelled: 'ملغي', completed: 'مكتمل' };
+      return names[status] || status;
+    }
+
+    function setupTheme() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+      }
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          document.documentElement.removeAttribute('data-theme');
+          localStorage.setItem('theme', 'light');
+          document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+          document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
