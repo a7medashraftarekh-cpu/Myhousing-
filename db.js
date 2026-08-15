@@ -5,7 +5,12 @@ const FIREBASE_URL = 'https://a7medashraf-25193-default-rtdb.firebaseio.com';
 async function firebaseGet(path) {
   try {
     const res = await fetch(`${FIREBASE_URL}/${path}.json`);
-    if (!res.ok) throw new Error('Network error');
+    if (!res.ok) {
+      if (res.status === 401) {
+        console.error('Firebase: Permission denied. Rules may be closed.');
+      }
+      throw new Error(`HTTP ${res.status}`);
+    }
     return await res.json();
   } catch (e) {
     console.error('Firebase GET error:', e);
@@ -15,21 +20,30 @@ async function firebaseGet(path) {
 
 async function firebasePut(path, data) {
   try {
-    await fetch(`${FIREBASE_URL}/${path}.json`, {
+    const res = await fetch(`${FIREBASE_URL}/${path}.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
+    if (!res.ok) {
+      if (res.status === 401) {
+        alert('⚠️ قواعد Firebase مقفولة!\n\nافتح Firebase Console ← Rules ← اجعل .read و .write = true ← Publish');
+      }
+      throw new Error(`HTTP ${res.status}`);
+    }
   } catch (e) {
     console.error('Firebase PUT error:', e);
+    throw e;
   }
 }
 
 async function firebaseDelete(path) {
   try {
-    await fetch(`${FIREBASE_URL}/${path}.json`, { method: 'DELETE' });
+    const res = await fetch(`${FIREBASE_URL}/${path}.json`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch (e) {
     console.error('Firebase DELETE error:', e);
+    throw e;
   }
 }
 
