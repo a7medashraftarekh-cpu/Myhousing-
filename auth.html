@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تسجيل الدخول | سكني</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -116,20 +116,27 @@
     </div>
   </div>
 
-  <script src="db.js"></script>
+  <script src="js/db.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      await initDB();
-      await generateDemoData();
+      await seedDatabase();
 
-      // Check if already logged in
+      // If already logged in, redirect to dashboard
       const user = getCurrentUser();
       if (user) {
-        window.location.href = 'index.html';
+        redirectAfterLogin(user);
       }
 
       setupTheme();
     });
+
+    function redirectAfterLogin(user) {
+      if (user.role === 'admin') {
+        window.location.href = 'admin.html';
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    }
 
     function showTab(tab) {
       document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -155,7 +162,7 @@
         const user = await authenticateUser(email, password);
         if (user) {
           setCurrentUser(user);
-          window.location.href = 'index.html';
+          redirectAfterLogin(user);
         } else {
           alert.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
           alert.classList.add('show');
@@ -201,7 +208,7 @@
 
         await registerUser(userData);
         setCurrentUser(userData);
-        window.location.href = 'index.html';
+        redirectAfterLogin(userData);
       } catch (error) {
         alert.textContent = error.message === 'Email already exists' ? 'البريد الإلكتروني مستخدم بالفعل' : 'حدث خطأ. يرجى المحاولة مرة أخرى.';
         alert.classList.add('show');

@@ -9,7 +9,7 @@
   <meta property="og:description" content="أكثر من 500 عقار ينتظرك">
   <meta property="og:type" content="website">
   <title>سكني | ابحث عن سكنك المثالي</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
@@ -253,7 +253,7 @@
     <i class="fas fa-download"></i> تثبيت التطبيق
   </button>
 
-  <script src="db.js"></script>
+  <script src="js/db.js"></script>
   <script>
     // Global state
     let currentPage = 1;
@@ -267,6 +267,10 @@
       await generateDemoData();
 
       currentUser = getCurrentUser();
+
+      // If logged in, redirect to dashboard (optional - remove if you want them to stay on homepage)
+      // if (currentUser) { window.location.href = 'dashboard.html'; return; }
+
       updateHeader();
       await loadStats();
       await applyFilters();
@@ -284,18 +288,21 @@
         document.getElementById('userAvatar').src = currentUser.avatar;
 
         // Show add property for owners
-        if (currentUser.role === 'owner') {
-          document.getElementById('ownerAddProperty').style.display = 'block';
+        const ownerAdd = document.getElementById('ownerAddProperty');
+        if (ownerAdd && currentUser.role === 'owner') {
+          ownerAdd.style.display = 'block';
         }
 
         // Update nav for admin
         if (currentUser.role === 'admin') {
           const navLinks = document.getElementById('navLinks');
-          navLinks.innerHTML = `
-            <li><a href="index.html" class="active">الرئيسية</a></li>
-            <li><a href="dashboard.html">لوحة التحكم</a></li>
-            <li><a href="admin.html">الإدارة</a></li>
-          `;
+          if (navLinks) {
+            navLinks.innerHTML = `
+              <li><a href="index.html" class="active">الرئيسية</a></li>
+              <li><a href="dashboard.html">لوحة التحكم</a></li>
+              <li><a href="admin.html">الإدارة</a></li>
+            `;
+          }
         }
       } else {
         guestActions.style.display = 'block';
