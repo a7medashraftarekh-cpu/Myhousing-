@@ -3,591 +3,183 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="سكني - منصة البحث عن السكن المثالي للطلاب في مصر">
-  <meta name="keywords" content="سكن طلابي, شقق للإيجار, غرف للطلاب, استوديو, القاهرة, الإسكندرية">
-  <meta property="og:title" content="سكني | ابحث عن سكنك المثالي">
-  <meta property="og:description" content="أكثر من 500 عقار ينتظرك">
-  <meta property="og:type" content="website">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; img-src * data:; connect-src https://*.firebaseio.com https://*.googleapis.com;">
   <title>سكني | ابحث عن سكنك المثالي</title>
-  <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .hero { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: #fff; padding: 80px 20px; text-align: center; }
+    .hero h1 { font-size: 42px; margin-bottom: 16px; }
+    .hero p { font-size: 18px; opacity: 0.9; margin-bottom: 32px; }
+    .search-box { background: #fff; padding: 24px; border-radius: 16px; max-width: 900px; margin: 0 auto; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+    .search-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
+    @media (max-width: 768px) { .search-row { grid-template-columns: 1fr; } }
+    .search-row label { display: block; margin-bottom: 6px; font-size: 14px; color: #666; font-weight: 500; }
+    .search-row input, .search-row select { width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; }
+    .btn-search { padding: 12px 28px; background: #0d6efd; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+    .properties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; padding: 40px 0; }
+    .property-card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: 0.3s; cursor: pointer; }
+    .property-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    .property-card img { width: 100%; height: 220px; object-fit: cover; }
+    .property-info { padding: 20px; }
+    .property-info h4 { margin-bottom: 8px; font-size: 17px; }
+    .property-meta { display: flex; gap: 16px; color: #666; font-size: 13px; margin-bottom: 12px; }
+    .property-price { color: #0d6efd; font-weight: 700; font-size: 18px; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-new { background: #d4edda; color: #155724; }
+    .badge-featured { background: #fff3cd; color: #856404; }
+    .user-menu { position: relative; }
+    .user-menu img { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
+    .dropdown { position: absolute; left: 0; top: 48px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); min-width: 180px; display: none; z-index: 100; }
+    .dropdown a { display: block; padding: 12px 16px; color: #333; font-size: 14px; border-bottom: 1px solid #f5f5f5; text-decoration: none; }
+    .dropdown a:hover { background: #f8f9fa; }
+    .dropdown.show { display: block; }
+    .navbar { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 12px 0; position: sticky; top: 0; z-index: 50; }
+    .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .logo { font-size: 22px; font-weight: 700; color: #0d6efd; text-decoration: none; }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
+    .nav-links a { color: #333; text-decoration: none; font-size: 15px; font-weight: 500; transition: 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: #0d6efd; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+  </style>
 </head>
 <body>
-  <!-- Toast Container -->
-  <div class="toast-container" id="toastContainer"></div>
-
-  <!-- Header -->
-  <header class="header">
-    <div class="header-container">
-      <a href="index.html" class="logo">
-        <i class="fas fa-home"></i>
-        <span>سكني</span>
-      </a>
-
-      <nav>
-        <ul class="nav-links" id="navLinks">
-          <li><a href="index.html" class="active">الرئيسية</a></li>
-          <li><a href="favorites.html">المفضلة</a></li>
-          <li><a href="chat.html">الرسائل</a></li>
-          <li><a href="dashboard.html">لوحة التحكم</a></li>
-          <li id="ownerAddProperty" style="display: none;"><a href="add-property.html"><i class="fas fa-plus"></i> إضافة عقار</a></li>
-        </ul>
-      </nav>
-
-      <div class="header-actions">
-        <button class="icon-btn theme-toggle" id="themeToggle" title="تغيير الوضع">
-          <i class="fas fa-moon"></i>
-        </button>
-
-        <div id="guestActions">
-          <a href="auth.html" class="btn btn-outline btn-sm">تسجيل الدخول</a>
-        </div>
-
-        <div class="user-menu" id="userMenu" style="display: none;">
-          <img src="" alt="User" class="user-avatar" id="userAvatar">
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo"><i class="fas fa-home"></i> سكني</a>
+      <div class="nav-links">
+        <a href="index.html" class="active">الرئيسية</a>
+        <a href="dashboard.html">لوحة التحكم</a>
+        <a href="favorites.html">المفضلة</a>
+        <a href="chat.html">الرسائل</a>
+        <a href="auth.html" id="authLink">تسجيل الدخول</a>
+        <div class="user-menu" id="userMenu" style="display:none;">
+          <img id="userAvatar" src="" onclick="document.getElementById('userDropdown').classList.toggle('show')">
           <div class="dropdown" id="userDropdown">
-            <a href="dashboard.html" class="dropdown-item">
-              <i class="fas fa-user"></i> حسابي
-            </a>
-            <a href="favorites.html" class="dropdown-item">
-              <i class="fas fa-heart"></i> المفضلة
-            </a>
-            <a href="bookings.html" class="dropdown-item">
-              <i class="fas fa-calendar-check"></i> حجوزاتي
-            </a>
-            <a href="chat.html" class="dropdown-item">
-              <i class="fas fa-comments"></i> الرسائل
-            </a>
-            <div class="dropdown-divider"></div>
-            <button class="dropdown-item" onclick="logout()">
-              <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
-            </button>
+            <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</a>
+            <a href="bookings.html"><i class="fas fa-calendar-check"></i> حجوزاتي</a>
+            <a href="favorites.html"><i class="fas fa-heart"></i> المفضلة</a>
+            <a href="#" onclick="logoutUser(); return false;"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a>
           </div>
         </div>
-
-        <button class="mobile-menu-btn" id="mobileMenuBtn">
-          <i class="fas fa-bars"></i>
-        </button>
       </div>
     </div>
-  </header>
+  </nav>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="hero-content">
-      <h1>ابحث عن سكنك المثالي</h1>
-      <p>أكثر من 500 عقار ينتظرك في مختلف المحافظات</p>
-      <div class="search-box">
-        <input type="text" class="search-input" id="searchInput" placeholder="ابحث بالمنطقة أو العنوان...">
-        <button class="btn btn-primary btn-lg" onclick="performSearch()">
-          <i class="fas fa-search"></i> بحث
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Stats Bar -->
-  <section class="stats-bar">
-    <div class="stats-container">
-      <div class="stat-item">
-        <h3 id="statProperties">0</h3>
-        <p>عقار متاح</p>
-      </div>
-      <div class="stat-item">
-        <h3 id="statUsers">0</h3>
-        <p>مستخدم نشط</p>
-      </div>
-      <div class="stat-item">
-        <h3 id="statBookings">0</h3>
-        <p>حجز ناجح</p>
-      </div>
-      <div class="stat-item">
-        <h3 id="statCities">0</h3>
-        <p>مدينة مغطاة</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Main Content -->
-  <main class="main-container">
-    <!-- Sidebar Filters -->
-    <aside class="sidebar">
-      <h3><i class="fas fa-filter"></i> فلترة البحث</h3>
-
-      <div class="filter-group">
-        <label>نوع السكن</label>
-        <select class="filter-select" id="filterType">
-          <option value="all">الكل</option>
-          <option value="shared_room">غرفة مشتركة</option>
-          <option value="private_room">غرفة خاصة</option>
-          <option value="studio">استوديو</option>
-          <option value="apartment">شقة</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label>الموقع</label>
-        <select class="filter-select" id="filterLocation">
-          <option value="all">كل المحافظات</option>
-          <option value="القاهرة">القاهرة</option>
-          <option value="الجيزة">الجيزة</option>
-          <option value="الإسكندرية">الإسكندرية</option>
-          <option value="المنصورة">المنصورة</option>
-          <option value="طنطا">طنطا</option>
-          <option value="الزقازيق">الزقازيق</option>
-          <option value="بنها">بنها</option>
-          <option value="الفيوم">الفيوم</option>
-          <option value="أسيوط">أسيوط</option>
-          <option value="سوهاج">سوهاج</option>
-          <option value="قنا">قنا</option>
-          <option value="الأقصر">الأقصر</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label>نطاق السعر</label>
-        <div class="price-range">
-          <input type="number" class="filter-input" id="minPrice" placeholder="من">
-          <span>-</span>
-          <input type="number" class="filter-input" id="maxPrice" placeholder="إلى">
+  <div class="hero">
+    <h1>ابحث عن سكنك المثالي</h1>
+    <p>أكثر من 500 عقار ينتظرك في مختلف المحافظات</p>
+    <div class="search-box">
+      <div class="search-row">
+        <div>
+          <label>المنطقة</label>
+          <select id="searchArea">
+            <option value="all">كل المناطق</option>
+            <option value="مدينة نصر">مدينة نصر</option>
+            <option value="المعادي">المعادي</option>
+            <option value="القاهرة الجديدة">القاهرة الجديدة</option>
+            <option value="6 أكتوبر">6 أكتوبر</option>
+            <option value="الإسكندرية">الإسكندرية</option>
+            <option value="طنطا">طنطا</option>
+            <option value="المنصورة">المنصورة</option>
+          </select>
         </div>
-      </div>
-
-      <div class="filter-group">
-        <label>الخدمات</label>
-        <div class="checkbox-group">
-          <label class="checkbox-item">
-            <input type="checkbox" id="filterInternet">
-            <span>إنترنت</span>
-          </label>
-          <label class="checkbox-item">
-            <input type="checkbox" id="filterFurnished">
-            <span>مفروش</span>
-          </label>
-          <label class="checkbox-item">
-            <input type="checkbox" id="filterAC">
-            <span>تكييف</span>
-          </label>
+        <div>
+          <label>نوع السكن</label>
+          <select id="searchType">
+            <option value="all">كل الأنواع</option>
+            <option value="shared_room">غرفة مشتركة</option>
+            <option value="private_room">غرفة خاصة</option>
+            <option value="studio">استوديو</option>
+            <option value="apartment">شقة</option>
+          </select>
         </div>
-      </div>
-
-      <button class="btn btn-primary" style="width: 100%;" onclick="applyFilters()">
-        <i class="fas fa-search"></i> تطبيق الفلتر
-      </button>
-      <button class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;" onclick="resetFilters()">
-        <i class="fas fa-undo"></i> إعادة تعيين
-      </button>
-    </aside>
-
-    <!-- Content Area -->
-    <div class="content-area">
-      <div class="section-header">
-        <h2 id="resultsTitle">العقارات المتاحة</h2>
-        <select class="sort-select" id="sortSelect" onchange="applyFilters()">
-          <option value="newest">الأحدث</option>
-          <option value="price_asc">السعر: من الأقل للأعلى</option>
-          <option value="price_desc">السعر: من الأعلى للأقل</option>
-          <option value="rating">الأعلى تقييماً</option>
-          <option value="views">الأكثر مشاهدة</option>
-        </select>
-      </div>
-
-      <div class="properties-grid" id="propertiesGrid">
-        <!-- Properties will be loaded here -->
-      </div>
-
-      <div class="empty-state" id="emptyState" style="display: none;">
-        <i class="fas fa-search"></i>
-        <h3>لا توجد نتائج</h3>
-        <p>جرب تغيير معايير البحث أو الفلترة</p>
-      </div>
-
-      <div class="pagination" id="pagination"></div>
-    </div>
-  </main>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-section">
-        <h3>عن سكني</h3>
-        <p>منصة سكني هي أكبر منصة للبحث عن السكن الطلابي في مصر. نساعدك في إيجاد سكنك المثالي بسهولة وأمان.</p>
-      </div>
-      <div class="footer-section">
-        <h3>روابط سريعة</h3>
-        <ul class="footer-links">
-          <li><a href="index.html">الرئيسية</a></li>
-          <li><a href="auth.html">تسجيل الدخول</a></li>
-          <li><a href="dashboard.html">لوحة التحكم</a></li>
-          <li><a href="chat.html">التواصل</a></li>
-        </ul>
-      </div>
-      <div class="footer-section">
-        <h3>الدعم</h3>
-        <ul class="footer-links">
-          <li><a href="#">مركز المساعدة</a></li>
-          <li><a href="#">الأسئلة الشائعة</a></li>
-          <li><a href="#">شروط الاستخدام</a></li>
-          <li><a href="#">سياسة الخصوصية</a></li>
-        </ul>
-      </div>
-      <div class="footer-section">
-        <h3>تواصل معنا</h3>
-        <ul class="footer-links">
-          <li><a href="mailto:support@myhousing.com"><i class="fas fa-envelope"></i> support@myhousing.com</a></li>
-          <li><a href="tel:01234567890"><i class="fas fa-phone"></i> 0123 456 7890</a></li>
-          <li><a href="#"><i class="fab fa-facebook"></i> فيسبوك</a></li>
-          <li><a href="#"><i class="fab fa-whatsapp"></i> واتساب</a></li>
-        </ul>
+        <div>
+          <label>السعر الأقصى</label>
+          <input type="number" id="searchMaxPrice" placeholder="ج.م">
+        </div>
+        <button class="btn-search" onclick="search()"><i class="fas fa-search"></i> بحث</button>
       </div>
     </div>
-    <div class="footer-bottom">
-      <p>© 2026 سكني. جميع الحقوق محفوظة.</p>
+  </div>
+
+  <div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:40px;">
+      <h2>أحدث العقارات</h2>
+      <select id="sortBy" onchange="search()" style="padding:8px 12px; border-radius:8px; border:1px solid #ddd;">
+        <option value="newest">الأحدث</option>
+        <option value="price_asc">السعر: من الأقل</option>
+        <option value="price_desc">السعر: من الأعلى</option>
+        <option value="rating">الأعلى تقييماً</option>
+      </select>
+    </div>
+    <div id="propertiesGrid" class="properties-grid"></div>
+    <div id="noResults" style="display:none; text-align:center; padding:60px; color:#666;">
+      <i class="fas fa-search" style="font-size:48px; margin-bottom:16px; opacity:0.3;"></i>
+      <p>مفيش نتائج مطابقة للبحث</p>
+    </div>
+  </div>
+
+  <footer style="background:#1a1a2e; color:#fff; padding:40px 20px; margin-top:60px;">
+    <div class="container" style="text-align:center;">
+      <h3 style="margin-bottom:12px;"><i class="fas fa-home"></i> سكني</h3>
+      <p style="opacity:0.7; font-size:14px;">منصة سكني هي أكبر منصة للبحث عن السكن الطلابي في مصر.</p>
+      <p style="opacity:0.5; font-size:13px; margin-top:20px;">© 2026 سكني. جميع الحقوق محفوظة.</p>
     </div>
   </footer>
 
-  <!-- Install Button -->
-  <button class="btn btn-primary install-btn" id="installBtn">
-    <i class="fas fa-download"></i> تثبيت التطبيق
-  </button>
-
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="utils.js"></script>
+  <script src="auth.js"></script>
   <script src="db.js"></script>
   <script>
-    // Global state
-    let currentPage = 1;
-    const itemsPerPage = 12;
-    let filteredProperties = [];
-    let currentUser = null;
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', async () => {
-      await initDB();
-      await generateDemoData();
-
-      currentUser = getCurrentUser();
-
-      // If logged in, redirect to dashboard (optional - remove if you want them to stay on homepage)
-      // if (currentUser) { window.location.href = 'index.html'; return; }
-
-      updateHeader();
-      await loadStats();
-      await applyFilters();
-      setupEventListeners();
-      setupTheme();
+    auth.onAuthStateChanged(function(user) {
+      updateNavbar();
+      search();
     });
 
-    function updateHeader() {
-      const guestActions = document.getElementById('guestActions');
-      const userMenu = document.getElementById('userMenu');
-
-      if (currentUser) {
-        guestActions.style.display = 'none';
-        userMenu.style.display = 'block';
-        document.getElementById('userAvatar').src = currentUser.avatar;
-
-        // Show add property for owners
-        const ownerAdd = document.getElementById('ownerAddProperty');
-        if (ownerAdd && currentUser.role === 'owner') {
-          ownerAdd.style.display = 'block';
-        }
-
-        // Update nav for admin
-        if (currentUser.role === 'admin') {
-          const navLinks = document.getElementById('navLinks');
-          if (navLinks) {
-            navLinks.innerHTML = `
-              <li><a href="index.html" class="active">الرئيسية</a></li>
-              <li><a href="dashboard.html">لوحة التحكم</a></li>
-              <li><a href="admin.html">الإدارة</a></li>
-            `;
-          }
-        }
-      } else {
-        guestActions.style.display = 'block';
-        userMenu.style.display = 'none';
-      }
-    }
-
-    // User dropdown
-    document.getElementById('userAvatar')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.getElementById('userDropdown').classList.toggle('show');
-    });
-
-    document.addEventListener('click', () => {
-      document.getElementById('userDropdown')?.classList.remove('show');
-    });
-
-    async function loadStats() {
-      const properties = await getAll('properties');
-      const users = await getAll('users');
-      const bookings = await getAll('bookings');
-
-      const cities = new Set(properties.map(p => p.location.split('،')[0].trim()));
-
-      document.getElementById('statProperties').textContent = properties.length;
-      document.getElementById('statUsers').textContent = users.length;
-      document.getElementById('statBookings').textContent = bookings.filter(b => b.status === 'confirmed').length;
-      document.getElementById('statCities').textContent = cities.size;
-    }
-
-    async function applyFilters() {
-      const filters = {
+    async function search() {
+      var filters = {
         status: 'active',
-        type: document.getElementById('filterType').value,
-        location: document.getElementById('filterLocation').value,
-        minPrice: document.getElementById('minPrice').value,
-        maxPrice: document.getElementById('maxPrice').value,
-        internet: document.getElementById('filterInternet').checked,
-        furnished: document.getElementById('filterFurnished').checked,
-        ac: document.getElementById('filterAC').checked,
-        search: document.getElementById('searchInput').value,
-        sort: document.getElementById('sortSelect').value
+        type: document.getElementById('searchType').value,
+        location: document.getElementById('searchArea').value,
+        maxPrice: document.getElementById('searchMaxPrice').value,
+        sort: document.getElementById('sortBy').value
       };
 
-      filteredProperties = await searchProperties(filters);
-      currentPage = 1;
-      renderProperties();
-    }
+      var props = await searchProperties(filters);
+      var grid = document.getElementById('propertiesGrid');
+      var noResults = document.getElementById('noResults');
 
-    function resetFilters() {
-      document.getElementById('filterType').value = 'all';
-      document.getElementById('filterLocation').value = 'all';
-      document.getElementById('minPrice').value = '';
-      document.getElementById('maxPrice').value = '';
-      document.getElementById('filterInternet').checked = false;
-      document.getElementById('filterFurnished').checked = false;
-      document.getElementById('filterAC').checked = false;
-      document.getElementById('searchInput').value = '';
-      document.getElementById('sortSelect').value = 'newest';
-      applyFilters();
-    }
-
-    function performSearch() {
-      applyFilters();
-    }
-
-    async function renderProperties() {
-      const grid = document.getElementById('propertiesGrid');
-      const emptyState = document.getElementById('emptyState');
-      const pagination = document.getElementById('pagination');
-
-      document.getElementById('resultsTitle').textContent = 
-        `العقارات المتاحة (${filteredProperties.length})`;
-
-      if (filteredProperties.length === 0) {
+      if (props.length === 0) {
         grid.innerHTML = '';
-        emptyState.style.display = 'block';
-        pagination.innerHTML = '';
+        noResults.style.display = 'block';
         return;
       }
 
-      emptyState.style.display = 'none';
-
-      const start = (currentPage - 1) * itemsPerPage;
-      const end = start + itemsPerPage;
-      const pageItems = filteredProperties.slice(start, end);
-
-      grid.innerHTML = '';
-
-      for (const prop of pageItems) {
-        const isFav = currentUser ? await isFavorite(currentUser.id, prop.id) : false;
-
-        const card = document.createElement('div');
-        card.className = 'property-card';
-        card.onclick = (e) => {
-          if (!e.target.closest('.favorite-btn')) {
-            window.location.href = `property.html?id=${prop.id}`;
-          }
-        };
-
-        card.innerHTML = `
-          <div class="property-image">
-            <img src="${prop.images[0]}" alt="${prop.title}" loading="lazy">
-            <span class="property-badge">${prop.typeName}</span>
-            <button class="favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavoriteItem('${prop.id}', this)">
-              <i class="fas fa-heart"></i>
-            </button>
-          </div>
-          <div class="property-content">
-            <div class="property-type">${prop.typeName}</div>
-            <h3 class="property-title">${prop.title}</h3>
-            <div class="property-location">
-              <i class="fas fa-map-marker-alt"></i>
-              <span>${prop.location}</span>
-            </div>
-            <div class="property-features">
-              <span><i class="fas fa-bed"></i> ${prop.rooms} غرف</span>
-              <span><i class="fas fa-user-friends"></i> ${prop.studentsPerRoom} طالب</span>
-              ${prop.internet ? '<span><i class="fas fa-wifi"></i> واي فاي</span>' : ''}
-            </div>
-            <div class="property-footer">
-              <div class="property-price">
-                ${prop.price.toLocaleString()} <span>ج.م/شهر</span>
-              </div>
-              <div class="property-rating">
-                <i class="fas fa-star"></i>
-                <span>${prop.rating}</span>
-                <span style="color: var(--gray-400); font-weight: 400;">(${prop.reviewsCount})</span>
-              </div>
-            </div>
-          </div>
-        `;
-
-        grid.appendChild(card);
-      }
-
-      renderPagination();
+      noResults.style.display = 'none';
+      grid.innerHTML = props.slice(0, 12).map(function(p) {
+        var isNew = p.createdAt && new Date(p.createdAt) > new Date(Date.now()-604800000);
+        return '<div class="property-card" onclick="window.location.href='property.html?id=' + p.id + ''">' +
+          '<img src="' + escapeHtml(p.images && p.images[0]) + '" alt="' + escapeHtml(p.title) + '" onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'">' +
+          '<div class="property-info">' +
+            '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">' +
+              '<h4>' + escapeHtml(p.title) + '</h4>' +
+              '<span class="badge ' + (isNew ? 'badge-new' : 'badge-featured') + '">' + (isNew ? 'جديد' : 'مميز') + '</span>' +
+            '</div>' +
+            '<div class="property-meta">' +
+              '<span><i class="fas fa-map-marker-alt"></i> ' + escapeHtml(p.area) + '</span>' +
+              '<span><i class="fas fa-bed"></i> ' + (p.rooms || 1) + ' غرف</span>' +
+              '<span><i class="fas fa-star"></i> ' + (p.rating || 0) + '</span>' +
+            '</div>' +
+            '<div class="property-price">' + (p.price || 0) + ' ج.م/شهر</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
     }
-
-    function renderPagination() {
-      const pagination = document.getElementById('pagination');
-      const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
-
-      if (totalPages <= 1) {
-        pagination.innerHTML = '';
-        return;
-      }
-
-      let html = '';
-
-      // Previous
-      html += `<button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
-        <i class="fas fa-chevron-right"></i>
-      </button>`;
-
-      // Pages
-      for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-          html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
-        } else if (i === currentPage - 2 || i === currentPage + 2) {
-          html += `<span style="padding: 0.5rem;">...</span>`;
-        }
-      }
-
-      // Next
-      html += `<button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
-        <i class="fas fa-chevron-left"></i>
-      </button>`;
-
-      pagination.innerHTML = html;
-    }
-
-    function changePage(page) {
-      const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
-      if (page < 1 || page > totalPages) return;
-      currentPage = page;
-      renderProperties();
-      window.scrollTo({top: 0, behavior: 'smooth'});
-    }
-
-    async function toggleFavoriteItem(propertyId, btn) {
-      if (!currentUser) {
-        showToast('يرجى تسجيل الدخول أولاً', 'warning');
-        return;
-      }
-
-      const isFav = await toggleFavorite(currentUser.id, propertyId);
-      btn.classList.toggle('active', isFav);
-      showToast(isFav ? 'تمت الإضافة للمفضلة' : 'تمت الإزالة من المفضلة', 'success');
-    }
-
-    function setupEventListeners() {
-      document.getElementById('searchInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') performSearch();
-      });
-
-      document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-
-      document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-        const nav = document.getElementById('navLinks');
-        nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
-        nav.style.position = 'absolute';
-        nav.style.top = '70px';
-        nav.style.left = '0';
-        nav.style.right = '0';
-        nav.style.flexDirection = 'column';
-        nav.style.background = 'var(--white)';
-        nav.style.padding = '1rem';
-        nav.style.boxShadow = 'var(--shadow-lg)';
-      });
-    }
-
-    // Theme
-    function setupTheme() {
-      const saved = localStorage.getItem('theme');
-      const toggleBtn = document.getElementById('themeToggle');
-      if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
-      }
-      if (toggleBtn) {
-        toggleBtn.addEventListener('click', function() {
-          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-          if (isDark) {
-            document.documentElement.removeAttribute('data-theme');
-            localStorage.setItem('theme', 'light');
-            toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
-          } else {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-            toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
-          }
-        });
-      }
-    }
-
-    function toggleTheme() {
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      if (isDark) {
-        document.documentElement.removeAttribute('data-theme');
-        localStorage.setItem('theme', 'light');
-        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
-      } else {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
-      }
-    }
-
-    // Toast
-    function showToast(message, type = 'success') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-
-      const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-circle' };
-      toast.innerHTML = `<i class="fas ${icons[type]}"></i><span>${message}</span>`;
-
-      container.appendChild(toast);
-
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(-20px)';
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
-    }
-
-    // PWA Install
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('installBtn').classList.add('show');
-    });
-
-    document.getElementById('installBtn').addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          document.getElementById('installBtn').classList.remove('show');
-        }
-        deferredPrompt = null;
-      }
-    });
   </script>
 </body>
 </html>

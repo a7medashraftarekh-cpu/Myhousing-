@@ -1,6 +1,40 @@
 {
   "rules": {
-    ".read": true,
-    ".write": true
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "properties": {
+      ".read": true,
+      "$pid": {
+        ".write": "auth != null && (root.child('properties').child($pid).child('ownerId').val() == auth.uid || !root.child('properties').child($pid).exists())"
+      }
+    },
+    "reviews": {
+      ".read": true,
+      "$rid": {
+        ".write": "auth != null"
+      }
+    },
+    "bookings": {
+      ".read": "auth != null",
+      "$bid": {
+        ".write": "auth != null"
+      }
+    },
+    "messages": {
+      ".read": "auth != null",
+      "$mid": {
+        ".write": "auth != null"
+      }
+    },
+    "favorites": {
+      ".read": "auth != null",
+      "$fid": {
+        ".write": "auth != null"
+      }
+    }
   }
 }

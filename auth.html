@@ -3,226 +3,244 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; img-src * data:; connect-src https://*.firebaseio.com https://*.googleapis.com;">
   <title>تسجيل الدخول | سكني</title>
-  <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 20px; }
+    .auth-container { width: 100%; max-width: 440px; background: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 8px 40px rgba(0,0,0,0.08); }
+    .auth-logo { text-align: center; margin-bottom: 28px; }
+    .auth-logo h2 { color: #0d6efd; font-size: 28px; }
+    .auth-logo p { color: #666; font-size: 14px; margin-top: 6px; }
+    .auth-tabs { display: flex; margin-bottom: 24px; border-bottom: 2px solid #eee; }
+    .auth-tab { flex: 1; padding: 14px; text-align: center; cursor: pointer; font-weight: 600; color: #666; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: 0.3s; background: none; border: none; font-size: 15px; }
+    .auth-tab.active { color: #0d6efd; border-bottom-color: #0d6efd; }
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; }
+    .form-group input, .form-group select { width: 100%; padding: 13px 16px; border: 1.5px solid #e0e0e0; border-radius: 12px; font-size: 15px; transition: 0.2s; font-family: inherit; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 4px rgba(13,110,253,0.08); }
+    .btn-auth { width: 100%; padding: 15px; background: #0d6efd; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .btn-auth:hover { background: #0b5ed7; }
+    .btn-auth:disabled { opacity: 0.6; cursor: not-allowed; }
+    .auth-footer { text-align: center; margin-top: 20px; font-size: 14px; color: #666; }
+    .auth-footer a { color: #0d6efd; cursor: pointer; font-weight: 500; }
+    .error-msg { color: #dc3545; font-size: 13px; margin-top: 6px; display: none; }
+    .success-msg { color: #198754; font-size: 14px; text-align: center; margin-top: 12px; display: none; }
+    .password-strength { height: 5px; border-radius: 3px; margin-top: 8px; transition: 0.3s; }
+    .strength-text { font-size: 12px; margin-top: 5px; font-weight: 500; }
+    .forgot-link { text-align: left; font-size: 13px; margin-top: -8px; margin-bottom: 16px; }
+    .forgot-link a { color: #0d6efd; cursor: pointer; font-weight: 500; }
+    .hidden { display: none !important; }
+    .back-link { text-align: center; margin-top: 16px; }
+    .back-link a { color: #0d6efd; cursor: pointer; font-size: 14px; }
+  </style>
 </head>
 <body>
   <div class="auth-page">
     <div class="auth-container">
       <div class="auth-logo">
-        <a href="index.html"><i class="fas fa-home"></i> سكني</a>
+        <h2><i class="fas fa-home"></i> سكني</h2>
+        <p>أهلاً بيك! سجّل دخولك أو اعمل حساب جديد</p>
       </div>
 
       <div class="auth-tabs">
-        <button class="auth-tab active" onclick="showTab('login')">تسجيل الدخول</button>
-        <button class="auth-tab" onclick="showTab('register')">حساب جديد</button>
+        <button class="auth-tab active" onclick="showForm('login')">تسجيل الدخول</button>
+        <button class="auth-tab" onclick="showForm('register')">إنشاء حساب</button>
       </div>
 
       <!-- Login Form -->
-      <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="alert alert-danger" id="loginAlert"></div>
-
+      <form id="loginForm" class="auth-form active" onsubmit="return handleLogin(event)">
         <div class="form-group">
           <label>البريد الإلكتروني</label>
-          <input type="email" class="form-input" id="loginEmail" required placeholder="example@email.com">
+          <input type="email" id="loginEmail" required placeholder="example@email.com" autocomplete="email">
+          <div class="error-msg" id="loginEmailError"></div>
         </div>
-
         <div class="form-group">
           <label>كلمة المرور</label>
-          <input type="password" class="form-input" id="loginPassword" required placeholder="••••••••">
+          <input type="password" id="loginPassword" required placeholder="••••••••" autocomplete="current-password">
+          <div class="error-msg" id="loginPasswordError"></div>
         </div>
-
-        <div class="form-check" style="margin-bottom: 1.5rem;">
-          <input type="checkbox" id="rememberMe">
-          <label for="rememberMe">تذكرني</label>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
-          <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-        </button>
-
-        <div style="margin-top: 1rem; text-align: center;">
-          <p style="font-size: 0.875rem; color: var(--gray-500);">حسابات تجريبية:</p>
-          <p style="font-size: 0.75rem; color: var(--gray-400); margin-top: 0.25rem;">
-            طالب: student1@example.com / password123<br>
-            مالك: owner1@example.com / password123<br>
-            أدمن: admin@myhousing.com / admin123
-          </p>
-        </div>
+        <div class="forgot-link"><a onclick="showForm('forgot')">نسيت كلمة المرور؟</a></div>
+        <button type="submit" class="btn-auth" id="loginBtn">تسجيل الدخول</button>
+        <div class="error-msg" id="loginError" style="text-align:center; margin-top:12px;"></div>
       </form>
 
       <!-- Register Form -->
-      <form id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
-        <div class="alert alert-danger" id="registerAlert"></div>
-
+      <form id="registerForm" class="auth-form" onsubmit="return handleRegister(event)">
         <div class="form-group">
-          <label>نوع الحساب</label>
-          <select class="form-select" id="registerRole" required>
+          <label>الاسم الكامل *</label>
+          <input type="text" id="regName" required placeholder="محمد أحمد" minlength="3">
+        </div>
+        <div class="form-group">
+          <label>البريد الإلكتروني *</label>
+          <input type="email" id="regEmail" required placeholder="example@email.com" autocomplete="email">
+          <div class="error-msg" id="regEmailError"></div>
+        </div>
+        <div class="form-group">
+          <label>رقم الهاتف *</label>
+          <input type="tel" id="regPhone" required placeholder="01xxxxxxxxx" pattern="01[0-9]{9}">
+        </div>
+        <div class="form-group">
+          <label>نوع الحساب *</label>
+          <select id="regRole" required>
             <option value="student">طالب</option>
             <option value="owner">مالك عقار</option>
           </select>
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>الاسم الأول</label>
-            <input type="text" class="form-input" id="registerFirstName" required>
-          </div>
-          <div class="form-group">
-            <label>الاسم الأخير</label>
-            <input type="text" class="form-input" id="registerLastName" required>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>البريد الإلكتروني</label>
-          <input type="email" class="form-input" id="registerEmail" required placeholder="example@email.com">
-        </div>
-
-        <div class="form-group">
-          <label>رقم الهاتف</label>
-          <input type="tel" class="form-input" id="registerPhone" required placeholder="01xxxxxxxxx">
-        </div>
-
-        <div class="form-group" id="universityGroup">
+        <div class="form-group hidden" id="uniField">
           <label>الجامعة</label>
-          <input type="text" class="form-input" id="registerUniversity" placeholder="اسم الجامعة">
+          <input type="text" id="regUni" placeholder="جامعة القاهرة">
         </div>
-
         <div class="form-group">
-          <label>كلمة المرور</label>
-          <input type="password" class="form-input" id="registerPassword" required minlength="6" placeholder="6 أحرف على الأقل">
+          <label>كلمة المرور *</label>
+          <input type="password" id="regPassword" required placeholder="••••••••" minlength="8" oninput="checkStrength()" autocomplete="new-password">
+          <div class="password-strength" id="strengthBar"></div>
+          <div class="strength-text" id="strengthText"></div>
+          <div class="error-msg" id="regPasswordError"></div>
         </div>
-
         <div class="form-group">
-          <label>تأكيد كلمة المرور</label>
-          <input type="password" class="form-input" id="registerConfirmPassword" required placeholder="••••••••">
+          <label>تأكيد كلمة المرور *</label>
+          <input type="password" id="regConfirm" required placeholder="••••••••" autocomplete="new-password">
+          <div class="error-msg" id="regConfirmError"></div>
         </div>
-
-        <div class="form-check" style="margin-bottom: 1.5rem;">
-          <input type="checkbox" id="agreeTerms" required>
-          <label for="agreeTerms">أوافق على <a href="#">شروط الاستخدام</a> و <a href="#">سياسة الخصوصية</a></label>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
-          <i class="fas fa-user-plus"></i> إنشاء حساب
-        </button>
+        <button type="submit" class="btn-auth" id="regBtn">إنشاء حساب</button>
+        <div class="error-msg" id="regError" style="text-align:center; margin-top:12px;"></div>
+        <div class="success-msg" id="regSuccess"></div>
       </form>
 
-      <div class="auth-footer">
-        <p>بالعودة إلى <a href="index.html">الصفحة الرئيسية</a></p>
-      </div>
+      <!-- Forgot Password Form -->
+      <form id="forgotForm" class="auth-form" onsubmit="return handleForgot(event)">
+        <p style="margin-bottom:20px; color:#666; font-size:14px; line-height:1.7;">هنبعتلك لينك إعادة تعيين كلمة المرور على إيميلك. اتفقد inbox و spam folder.</p>
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" id="forgotEmail" required placeholder="example@email.com">
+        </div>
+        <button type="submit" class="btn-auth" id="forgotBtn">إرسال اللينك</button>
+        <div class="success-msg" id="forgotSuccess"></div>
+        <div class="error-msg" id="forgotError" style="text-align:center; margin-top:12px;"></div>
+        <div class="back-link"><a onclick="showForm('login')">رجوع لتسجيل الدخول</a></div>
+      </form>
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="utils.js"></script>
+  <script src="auth.js"></script>
   <script src="db.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      await seedDatabase();
-
-      // If already logged in, go to homepage
-      const user = getCurrentUser();
+    // Redirect if already logged in
+    auth.onAuthStateChanged(function(user) {
       if (user) {
-        window.location.href = 'index.html';
+        var params = new URLSearchParams(window.location.search);
+        var redirect = params.get('redirect') || 'index.html';
+        window.location.href = redirect;
       }
-
-      setupTheme();
     });
 
-    function redirectAfterLogin(user) {
-      if (user.role === 'admin') {
-        window.location.href = 'admin.html';
-      } else {
-        window.location.href = 'index.html';
+    document.getElementById('regRole').addEventListener('change', function(e) {
+      document.getElementById('uniField').classList.toggle('hidden', e.target.value !== 'student');
+    });
+
+    function showForm(type) {
+      document.querySelectorAll('.auth-form').forEach(function(f) { f.classList.remove('active'); });
+      document.querySelectorAll('.auth-tab').forEach(function(t) { t.classList.remove('active'); });
+      if (type === 'login') {
+        document.getElementById('loginForm').classList.add('active');
+        document.querySelectorAll('.auth-tab')[0].classList.add('active');
+      } else if (type === 'register') {
+        document.getElementById('registerForm').classList.add('active');
+        document.querySelectorAll('.auth-tab')[1].classList.add('active');
+      } else if (type === 'forgot') {
+        document.getElementById('forgotForm').classList.add('active');
+        document.querySelectorAll('.auth-tab').forEach(function(t) { t.classList.remove('active'); });
       }
+      hideErrors();
     }
 
-    function showTab(tab) {
-      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-      event.target.classList.add('active');
-
-      if (tab === 'login') {
-        document.getElementById('loginForm').style.display = 'block';
-        document.getElementById('registerForm').style.display = 'none';
-      } else {
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('registerForm').style.display = 'block';
-      }
+    function checkStrength() {
+      var pass = document.getElementById('regPassword').value;
+      var result = checkPasswordStrength(pass);
+      var bar = document.getElementById('strengthBar');
+      var text = document.getElementById('strengthText');
+      bar.style.width = (result.score / 6 * 100) + '%';
+      bar.style.background = result.color;
+      text.textContent = result.score > 0 ? 'قوة كلمة المرور: ' + result.strength : '';
+      text.style.color = result.color;
     }
 
     async function handleLogin(e) {
       e.preventDefault();
-
-      const email = document.getElementById('loginEmail').value;
-      const password = document.getElementById('loginPassword').value;
-      const alert = document.getElementById('loginAlert');
+      hideErrors();
+      setLoading('loginBtn', true);
 
       try {
-        const user = await authenticateUser(email, password);
-        if (user) {
-          setCurrentUser(user);
-          redirectAfterLogin(user);
-        } else {
-          alert.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-          alert.classList.add('show');
-        }
-      } catch (error) {
-        alert.textContent = 'حدث خطأ. يرجى المحاولة مرة أخرى.';
-        alert.classList.add('show');
+        var email = document.getElementById('loginEmail').value.trim();
+        var password = document.getElementById('loginPassword').value;
+
+        if (!validateEmail(email)) throw new Error('الإيميل مش صحيح');
+        if (password.length < 6) throw new Error('كلمة المرور قصيرة جداً');
+
+        await loginUser(email, password);
+        var params = new URLSearchParams(window.location.search);
+        window.location.href = params.get('redirect') || 'index.html';
+      } catch (err) {
+        showError('loginError', err.message || 'فشل تسجيل الدخول. اتأكد من البيانات.');
+        setLoading('loginBtn', false);
       }
     }
 
     async function handleRegister(e) {
       e.preventDefault();
-
-      const alert = document.getElementById('registerAlert');
-
-      const role = document.getElementById('registerRole').value;
-      const firstName = document.getElementById('registerFirstName').value;
-      const lastName = document.getElementById('registerLastName').value;
-      const email = document.getElementById('registerEmail').value;
-      const phone = document.getElementById('registerPhone').value;
-      const university = document.getElementById('registerUniversity').value;
-      const password = document.getElementById('registerPassword').value;
-      const confirmPassword = document.getElementById('registerConfirmPassword').value;
-
-      if (password !== confirmPassword) {
-        alert.textContent = 'كلمتا المرور غير متطابقتين';
-        alert.classList.add('show');
-        return;
-      }
+      hideErrors();
+      setLoading('regBtn', true);
 
       try {
-        const userData = {
-          id: `${role}_${Date.now()}`,
-          name: `${firstName} ${lastName}`,
-          email: email,
-          phone: phone,
-          password: password,
-          role: role,
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName + ' ' + lastName)}&background=random`,
-          university: role === 'student' ? university : null,
-          createdAt: new Date().toISOString()
-        };
+        var name = document.getElementById('regName').value.trim();
+        var email = document.getElementById('regEmail').value.trim();
+        var phone = document.getElementById('regPhone').value.trim();
+        var role = document.getElementById('regRole').value;
+        var uni = document.getElementById('regUni').value.trim();
+        var password = document.getElementById('regPassword').value;
+        var confirm = document.getElementById('regConfirm').value;
 
-        await registerUser(userData);
-        setCurrentUser(userData);
-        redirectAfterLogin(userData);
-      } catch (error) {
-        alert.textContent = error.message === 'Email already exists' ? 'البريد الإلكتروني مستخدم بالفعل' : 'حدث خطأ. يرجى المحاولة مرة أخرى.';
-        alert.classList.add('show');
+        validateRequired(name, 'الاسم');
+        if (name.length < 3) throw new Error('الاسم لازم يكون 3 أحرف على الأقل');
+        if (!validateEmail(email)) throw new Error('الإيميل مش صحيح');
+        if (!validatePhone(phone)) throw new Error('رقم الهاتف لازم يبدأ بـ 01 ويكون 11 رقم');
+        if (password !== confirm) throw new Error('كلمتي المرور مش متطابقتين');
+
+        await registerUser(email, password, { name: name, phone: phone, role: role, university: uni });
+
+        document.getElementById('regSuccess').textContent = 'تم إنشاء الحساب! اتفقد إيميلك عشان تفعيل الحساب.';
+        document.getElementById('regSuccess').style.display = 'block';
+        document.getElementById('registerForm').reset();
+        setTimeout(function() { showForm('login'); }, 4000);
+      } catch (err) {
+        showError('regError', err.message || 'فشل إنشاء الحساب. جرب إيميل تاني.');
+        setLoading('regBtn', false);
       }
     }
 
-    document.getElementById('registerRole').addEventListener('change', (e) => {
-      document.getElementById('universityGroup').style.display = e.target.value === 'student' ? 'block' : 'none';
-    });
+    async function handleForgot(e) {
+      e.preventDefault();
+      hideErrors();
+      setLoading('forgotBtn', true);
 
-    function setupTheme() {
-      const saved = localStorage.getItem('theme');
-      if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
+      try {
+        var email = document.getElementById('forgotEmail').value.trim();
+        if (!validateEmail(email)) throw new Error('الإيميل مش صحيح');
+        await resetPassword(email);
+        document.getElementById('forgotSuccess').textContent = 'تم إرسال اللينك! اتفقد إيميلك (و Spam folder).';
+        document.getElementById('forgotSuccess').style.display = 'block';
+      } catch (err) {
+        showError('forgotError', err.message || 'فشل إرسال اللينك. اتأكد من الإيميل.');
+        setLoading('forgotBtn', false);
       }
     }
   </script>

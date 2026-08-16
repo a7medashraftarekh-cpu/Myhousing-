@@ -3,181 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; img-src * data:; connect-src https://*.firebaseio.com https://*.googleapis.com;">
   <title>حجوزاتي | سكني</title>
-  <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .navbar { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 12px 0; position: sticky; top: 0; z-index: 50; }
+    .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .logo { font-size: 22px; font-weight: 700; color: #0d6efd; text-decoration: none; }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
+    .nav-links a { color: #333; text-decoration: none; font-size: 15px; font-weight: 500; }
+    .nav-links a:hover, .nav-links a.active { color: #0d6efd; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .booking-card { background: #fff; border-radius: 16px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .booking-info h4 { margin-bottom: 6px; }
+    .booking-info p { color: #666; font-size: 14px; }
+    .booking-status { padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-approved { background: #d4edda; color: #155724; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .status-cancelled { background: #e2e3e5; color: #383d41; }
+  </style>
 </head>
 <body>
-  <div class="toast-container" id="toastContainer"></div>
-
-  <header class="header">
-    <div class="header-container">
-      <a href="index.html" class="logo"><i class="fas fa-home"></i><span>سكني</span></a>
-      <nav>
-        <ul class="nav-links">
-          <li><a href="index.html">الرئيسية</a></li>
-          <li><a href="favorites.html">المفضلة</a></li>
-          <li><a href="chat.html">الرسائل</a></li>
-          <li><a href="dashboard.html">لوحة التحكم</a></li>
-        </ul>
-      </nav>
-      <div class="header-actions">
-        <button class="icon-btn theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
-        <div class="user-menu" id="userMenu">
-          <img src="" alt="User" class="user-avatar" id="userAvatar">
-          <div class="dropdown" id="userDropdown">
-            <a href="dashboard.html" class="dropdown-item"><i class="fas fa-user"></i> حسابي</a>
-            <a href="favorites.html" class="dropdown-item"><i class="fas fa-heart"></i> المفضلة</a>
-            <a href="bookings.html" class="dropdown-item"><i class="fas fa-calendar-check"></i> حجوزاتي</a>
-            <a href="chat.html" class="dropdown-item"><i class="fas fa-comments"></i> الرسائل</a>
-            <div class="dropdown-divider"></div>
-            <button class="dropdown-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
-          </div>
-        </div>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo"><i class="fas fa-home"></i> سكني</a>
+      <div class="nav-links">
+        <a href="index.html">الرئيسية</a>
+        <a href="dashboard.html">لوحة التحكم</a>
+        <a href="bookings.html" class="active">حجوزاتي</a>
+        <a href="#" onclick="logoutUser(); return false;">تسجيل الخروج</a>
       </div>
     </div>
-  </header>
+  </nav>
 
-  <main class="main-container" style="grid-template-columns: 1fr;">
-    <div class="content-area">
-      <div class="section-header">
-        <h2>حجوزاتي (<span id="bookingCount">0</span>)</h2>
-      </div>
-      <div id="bookingsList"></div>
-      <div class="empty-state" id="emptyState" style="display: none;">
-        <i class="fas fa-calendar-check"></i>
-        <h3>لا توجد حجوزات</h3>
-        <p>ابحث عن عقار واحجزه الآن</p>
-        <a href="index.html" class="btn btn-primary" style="margin-top: 1rem;">استكشف العقارات</a>
-      </div>
-    </div>
-  </main>
+  <div class="container" style="padding: 40px 20px;">
+    <h1>حجوزاتي <i class="fas fa-calendar-check" style="color:#0d6efd;"></i></h1>
+    <p style="color:#666; margin-bottom:30px;">تابع حجوزاتك ومواعيدك</p>
+    <div id="bookingsList"></div>
+  </div>
 
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-section"><h3>عن سكني</h3><p>منصة سكني هي أكبر منصة للبحث عن السكن الطلابي في مصر.</p></div>
-      <div class="footer-section"><h3>روابط سريعة</h3><ul class="footer-links"><li><a href="index.html">الرئيسية</a></li><li><a href="auth.html">تسجيل الدخول</a></li></ul></div>
-    </div>
-    <div class="footer-bottom"><p>© 2026 سكني. جميع الحقوق محفوظة.</p></div>
-  </footer>
-
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="utils.js"></script>
+  <script src="auth.js"></script>
   <script src="db.js"></script>
   <script>
-    let currentUser = null;
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      await initDB();
-      await generateDemoData();
-      currentUser = getCurrentUser();
-      if (!currentUser) { window.location.href = 'auth.html'; return; }
-      updateHeader();
-      await loadBookings();
-      setupTheme();
-    });
-
-    function updateHeader() {
-      document.getElementById('userAvatar').src = currentUser.avatar;
-    }
-
-    document.getElementById('userAvatar')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.getElementById('userDropdown').classList.toggle('show');
-    });
-    document.addEventListener('click', () => document.getElementById('userDropdown')?.classList.remove('show'));
-
-    async function loadBookings() {
-      let bookings = [];
-      if (currentUser.role === 'student') {
-        bookings = await getUserBookings(currentUser.id);
-      } else if (currentUser.role === 'owner') {
-        bookings = await getOwnerBookings(currentUser.id);
-      }
-
-      const list = document.getElementById('bookingsList');
-      const emptyState = document.getElementById('emptyState');
-
-      document.getElementById('bookingCount').textContent = bookings.length;
-
-      if (bookings.length === 0) {
-        list.innerHTML = '';
-        emptyState.style.display = 'block';
+    auth.onAuthStateChanged(async function(user) {
+      if (!user) {
+        window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.pathname);
         return;
       }
+      loadBookings(user.uid);
+    });
 
-      emptyState.style.display = 'none';
-
-      list.innerHTML = bookings.map(b => `
-        <div class="table-container" style="margin-bottom: 1rem;">
-          <div style="padding: 1.5rem; display: flex; gap: 1.5rem; flex-wrap: wrap;">
-            <img src="${b.propertyImage}" alt="" style="width: 120px; height: 120px; border-radius: var(--radius); object-fit: cover;">
-            <div style="flex: 1; min-width: 200px;">
-              <h3 style="font-weight: 700; margin-bottom: 0.5rem;">${b.propertyTitle}</h3>
-              <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; color: var(--gray-600); font-size: 0.875rem; margin-bottom: 1rem;">
-                <span><i class="fas fa-calendar"></i> من ${new Date(b.startDate).toLocaleDateString('ar-EG')} إلى ${new Date(b.endDate).toLocaleDateString('ar-EG')}</span>
-                <span><i class="fas fa-money-bill-wave"></i> ${b.totalPrice.toLocaleString()} ج.م</span>
-                <span><i class="fas fa-user"></i> ${currentUser.role === 'student' ? b.ownerName : b.userName}</span>
-              </div>
-              <p style="color: var(--gray-500); font-size: 0.875rem; margin-bottom: 1rem;">${b.message || 'لا توجد رسالة'}</p>
-              <div style="display: flex; gap: 0.75rem;">
-                <span class="status-badge status-${b.status}">${getStatusName(b.status)}</span>
-                ${currentUser.role === 'owner' && b.status === 'pending' ? `
-                  <button class="btn btn-sm btn-success" onclick="updateBookingStatus('${b.id}', 'confirmed')">قبول</button>
-                  <button class="btn btn-sm btn-danger" onclick="updateBookingStatus('${b.id}', 'cancelled')">رفض</button>
-                ` : ''}
-                <button class="btn btn-sm btn-outline" onclick="window.location.href='property.html?id=${b.propertyId}'">عرض العقار</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    async function updateBookingStatus(bookingId, status) {
-      const booking = await getById('bookings', bookingId);
-      if (booking) {
-        booking.status = status;
-        await put('bookings', booking);
-        showToast(status === 'confirmed' ? 'تم تأكيد الحجز' : 'تم رفض الحجز', 'success');
-        await loadBookings();
+    async function loadBookings(uid) {
+      var bookings = await getUserBookings(uid);
+      var container = document.getElementById('bookingsList');
+      if (bookings.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#666; padding:40px;">مفيش حجوزات لسه. <a href="index.html" style="color:#0d6efd;">ابحث عن عقار</a></p>';
+        return;
       }
-    }
-
-    function getStatusName(status) {
-      const names = { pending: 'معلق', confirmed: 'مؤكد', cancelled: 'ملغي', completed: 'مكتمل' };
-      return names[status] || status;
-    }
-
-    function setupTheme() {
-      const saved = localStorage.getItem('theme');
-      const toggleBtn = document.getElementById('themeToggle');
-      if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
-      }
-      if (toggleBtn) {
-        toggleBtn.addEventListener('click', function() {
-          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-          if (isDark) {
-            document.documentElement.removeAttribute('data-theme');
-            localStorage.setItem('theme', 'light');
-            toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
-          } else {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-            toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
-          }
-        });
-      }
-    }
-
-    function showToast(message, type = 'success') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-circle' };
-      toast.innerHTML = `<i class="fas ${icons[type]}"></i><span>${message}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
+      var statusClass = { pending: 'status-pending', approved: 'status-approved', rejected: 'status-rejected', cancelled: 'status-cancelled' };
+      var statusText = { pending: 'بانتظار الموافقة', approved: 'تمت الموافقة', rejected: 'تم الرفض', cancelled: 'ملغي' };
+      container.innerHTML = bookings.map(function(b) {
+        return '<div class="booking-card">' +
+          '<div class="booking-info">' +
+            '<h4>' + escapeHtml(b.propertyTitle) + '</h4>' +
+            '<p><i class="fas fa-calendar"></i> من ' + b.startDate + ' إلى ' + b.endDate + '</p>' +
+            '<p><i class="fas fa-money-bill"></i> ' + b.price + ' ج.م/شهر</p>' +
+          '</div>' +
+          '<span class="booking-status ' + (statusClass[b.status] || 'status-pending') + '">' + (statusText[b.status] || b.status) + '</span>' +
+        '</div>';
+      }).join('');
     }
   </script>
 </body>

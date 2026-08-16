@@ -3,288 +3,242 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; img-src * data:; connect-src https://*.firebaseio.com https://*.googleapis.com;">
   <title>إضافة عقار | سكني</title>
-  <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .navbar { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 12px 0; position: sticky; top: 0; z-index: 50; }
+    .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .logo { font-size: 22px; font-weight: 700; color: #0d6efd; text-decoration: none; }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
+    .nav-links a { color: #333; text-decoration: none; font-size: 15px; font-weight: 500; }
+    .nav-links a:hover, .nav-links a.active { color: #0d6efd; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .form-container { max-width: 700px; margin: 40px auto; background: #fff; padding: 32px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 14px; border: 1.5px solid #e0e0e0; border-radius: 10px; font-size: 15px; font-family: inherit; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 4px rgba(13,110,253,0.08); }
+    .form-group textarea { min-height: 120px; resize: vertical; }
+    .amenities-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    .amenity-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1.5px solid #eee; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .amenity-item:hover { border-color: #0d6efd; }
+    .amenity-item input { width: auto; }
+    .btn-submit { width: 100%; padding: 14px; background: #0d6efd; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .error-msg { color: #dc3545; font-size: 13px; margin-top: 6px; }
+    .success-msg { color: #198754; font-size: 14px; text-align: center; margin-top: 12px; }
+  </style>
 </head>
 <body>
-  <div class="toast-container" id="toastContainer"></div>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo"><i class="fas fa-home"></i> سكني</a>
+      <div class="nav-links">
+        <a href="index.html">الرئيسية</a>
+        <a href="dashboard.html">لوحة التحكم</a>
+        <a href="#" onclick="logoutUser(); return false;">تسجيل الخروج</a>
+      </div>
+    </div>
+  </nav>
 
-  <header class="header">
-    <div class="header-container">
-      <a href="index.html" class="logo"><i class="fas fa-home"></i><span>سكني</span></a>
-      <nav>
-        <ul class="nav-links">
-          <li><a href="index.html">الرئيسية</a></li>
-          <li><a href="dashboard.html">لوحة التحكم</a></li>
-          <li><a href="add-property.html" class="active">إضافة عقار</a></li>
-        </ul>
-      </nav>
-      <div class="header-actions">
-        <button class="icon-btn theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
-        <div class="user-menu" id="userMenu">
-          <img src="" alt="User" class="user-avatar" id="userAvatar">
-          <div class="dropdown" id="userDropdown">
-            <a href="dashboard.html" class="dropdown-item"><i class="fas fa-user"></i> حسابي</a>
-            <div class="dropdown-divider"></div>
-            <button class="dropdown-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+  <div class="container">
+    <div class="form-container">
+      <h2 style="margin-bottom:8px;"><i class="fas fa-plus-circle"></i> إضافة عقار جديد</h2>
+      <p style="color:#666; font-size:14px; margin-bottom:24px;">املأ البيانات التالية بعناية</p>
+
+      <form id="addPropertyForm" onsubmit="return handleSubmit(event)">
+        <div class="form-group">
+          <label>عنوان العقار *</label>
+          <input type="text" id="title" required placeholder="مثال: شقة مفروشة في مدينة نصر">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>نوع السكن *</label>
+            <select id="type" required>
+              <option value="shared_room">غرفة مشتركة</option>
+              <option value="private_room">غرفة خاصة</option>
+              <option value="studio">استوديو</option>
+              <option value="apartment">شقة</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>المنطقة *</label>
+            <select id="area" required>
+              <option value="">اختر المنطقة</option>
+              <option value="مدينة نصر">مدينة نصر</option>
+              <option value="المعادي">المعادي</option>
+              <option value="الحي العاشر">الحي العاشر</option>
+              <option value="مصر الجديدة">مصر الجديدة</option>
+              <option value="الدقي">الدقي</option>
+              <option value="المهندسين">المهندسين</option>
+              <option value="القاهرة الجديدة">القاهرة الجديدة</option>
+              <option value="6 أكتوبر">6 أكتوبر</option>
+              <option value="الشيخ زايد">الشيخ زايد</option>
+              <option value="المقطم">المقطم</option>
+              <option value="العباسية">العباسية</option>
+              <option value="الإسكندرية - سموحة">الإسكندرية - سموحة</option>
+              <option value="الإسكندرية - العجمي">الإسكندرية - العجمي</option>
+              <option value="طنطا">طنطا</option>
+              <option value="المنصورة">المنصورة</option>
+              <option value="أسيوط">أسيوط</option>
+              <option value="سوهاج">سوهاج</option>
+            </select>
           </div>
         </div>
-      </div>
-    </div>
-  </header>
 
-  <main class="property-detail">
-    <div class="breadcrumb">
-      <a href="index.html">الرئيسية</a>
-      <i class="fas fa-chevron-left" style="font-size: 0.75rem;"></i>
-      <span>إضافة عقار جديد</span>
-    </div>
-
-    <div style="max-width: 800px; margin: 0 auto;">
-      <div class="detail-section">
-        <h2><i class="fas fa-plus-circle"></i> إضافة عقار جديد</h2>
-        <p style="color: var(--gray-500); margin-bottom: 1.5rem;">أدخل تفاصيل العقار وسيتم نشره فوراً للطلاب</p>
-
-        <form id="addPropertyForm" onsubmit="submitProperty(event)">
-          <div class="form-row">
-            <div class="form-group">
-              <label>عنوان العقار *</label>
-              <input type="text" class="form-input" id="propTitle" required placeholder="مثال: غرفة مفروشة للطلاب">
-            </div>
-            <div class="form-group">
-              <label>نوع السكن *</label>
-              <select class="form-select" id="propType" required>
-                <option value="shared_room">غرفة مشتركة</option>
-                <option value="private_room">غرفة خاصة</option>
-                <option value="studio">استوديو</option>
-                <option value="apartment">شقة</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>الموقع / المنطقة *</label>
-              <select class="form-select" id="propLocation" required>
-                <option value="مدينة نصر">مدينة نصر</option>
-                <option value="المعادي">المعادي</option>
-                <option value="الحي العاشر">الحي العاشر</option>
-                <option value="مصر الجديدة">مصر الجديدة</option>
-                <option value="الدقي">الدقي</option>
-                <option value="المهندسين">المهندسين</option>
-                <option value="القاهرة الجديدة">القاهرة الجديدة</option>
-                <option value="6 أكتوبر">6 أكتوبر</option>
-                <option value="الشيخ زايد">الشيخ زايد</option>
-                <option value="المقطم">المقطم</option>
-                <option value="الإسكندرية - سموحة">الإسكندرية - سموحة</option>
-                <option value="الإسكندرية - العجمي">الإسكندرية - العجمي</option>
-                <option value="طنطا">طنطا</option>
-                <option value="المنصورة">المنصورة</option>
-                <option value="الزقازيق">الزقازيق</option>
-                <option value="بنها">بنها</option>
-                <option value="أسيوط">أسيوط</option>
-                <option value="سوهاج">سوهاج</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>العنوان التفصيلي *</label>
-              <input type="text" class="form-input" id="propAddress" required placeholder="شارع، عمارة، شقة">
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>السعر الشهري (ج.م) *</label>
-              <input type="number" class="form-input" id="propPrice" required min="500" placeholder="2500">
-            </div>
-            <div class="form-group">
-              <label>عدد الغرف</label>
-              <input type="number" class="form-input" id="propRooms" min="1" value="1">
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>عدد الطلاب في الغرفة</label>
-              <input type="number" class="form-input" id="propStudents" min="1" value="1">
-            </div>
-            <div class="form-group">
-              <label>تاريخ التوفر</label>
-              <input type="date" class="form-input" id="propAvailable">
-            </div>
-          </div>
-
+        <div class="form-row">
           <div class="form-group">
-            <label>وصف العقار *</label>
-            <textarea class="form-input" id="propDescription" rows="4" required placeholder="اكتب وصفاً تفصيلياً للعقار..."></textarea>
+            <label>السعر (ج.م/شهر) *</label>
+            <input type="number" id="price" required min="100" placeholder="2500">
           </div>
-
           <div class="form-group">
-            <label>رابط الصورة الرئيسية *</label>
-            <input type="url" class="form-input" id="propImage" required placeholder="https://example.com/image.jpg">
+            <label>عدد الغرف</label>
+            <input type="number" id="rooms" min="1" value="1">
           </div>
+        </div>
 
+        <div class="form-group">
+          <label>العنوان التفصيلي *</label>
+          <input type="text" id="address" required placeholder="شارع 9، مدينة نصر، بجوار الجامعة">
+        </div>
+
+        <div class="form-group">
+          <label>الوصف *</label>
+          <textarea id="description" required placeholder="اكتب وصف تفصيلي للعقار..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>المرافق المتاحة</label>
+          <div class="amenities-grid">
+            <label class="amenity-item"><input type="checkbox" value="wifi"> <i class="fas fa-wifi"></i> واي فاي</label>
+            <label class="amenity-item"><input type="checkbox" value="ac"> <i class="fas fa-snowflake"></i> تكييف</label>
+            <label class="amenity-item"><input type="checkbox" value="fridge"> <i class="fas fa-box"></i> ثلاجة</label>
+            <label class="amenity-item"><input type="checkbox" value="washing"> <i class="fas fa-soap"></i> غسالة</label>
+            <label class="amenity-item"><input type="checkbox" value="tv"> <i class="fas fa-tv"></i> تلفزيون</label>
+            <label class="amenity-item"><input type="checkbox" value="kitchen"> <i class="fas fa-utensils"></i> مطبخ</label>
+            <label class="amenity-item"><input type="checkbox" value="parking"> <i class="fas fa-car"></i> جراج</label>
+            <label class="amenity-item"><input type="checkbox" value="security"> <i class="fas fa-shield-alt"></i> أمن</label>
+            <label class="amenity-item"><input type="checkbox" value="elevator"> <i class="fas fa-arrow-up"></i> مصعد</label>
+            <label class="amenity-item"><input type="checkbox" value="balcony"> <i class="fas fa-sun"></i> بلكونة</label>
+          </div>
+        </div>
+
+        <div class="form-row">
           <div class="form-group">
-            <label>الخدمات المتاحة</label>
-            <div class="checkbox-group" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.5rem;">
-              <label class="checkbox-item"><input type="checkbox" id="am_wifi" value="wifi"><span>واي فاي</span></label>
-              <label class="checkbox-item"><input type="checkbox" id="am_ac" value="ac"><span>تكييف</span></label>
-              <label class="checkbox-item"><input type="checkbox" id="am_fridge" value="fridge"><span>ثلاجة</span></label>
-              <label class="checkbox-item"><input type="checkbox" id="am_washing" value="washing"><span>غسالة</span></label>
-              <label class="checkbox-item"><input type="checkbox" id="am_tv" value="tv"><span>تلفزيون</span></label>
-              <label class="checkbox-item"><input type="checkbox" id="am_kitchen" value="kitchen"><span>مطبخ</span></label>
-              <label class="checkbox-item"><input type="checkbox" id="am_parking" value="parking"><span>جراج</span></label>
-              <label class="checkbox-item"><input type="checkbox" id="am_security" value="security"><span>أمن</span></label>
-              <label class="checkbox-item"><input type="checkbox" id="am_elevator" value="elevator"><span>مصعد</span></label>
-              <label class="checkbox-item"><input type="checkbox" id="am_balcony" value="balcony"><span>بلكونة</span></label>
-            </div>
+            <label>متاح من *</label>
+            <input type="date" id="availableFrom" required>
           </div>
-
-          <div class="form-row">
-            <div class="form-check" style="margin-bottom: 1rem;">
-              <input type="checkbox" id="propFurnished">
-              <label for="propFurnished">مفروش</label>
-            </div>
-            <div class="form-check" style="margin-bottom: 1rem;">
-              <input type="checkbox" id="propInternet">
-              <label for="propInternet">إنترنت</label>
-            </div>
+          <div class="form-group">
+            <label>متاح حتى</label>
+            <input type="date" id="availableTo">
           </div>
+        </div>
 
-          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
-            <i class="fas fa-plus"></i> نشر العقار
-          </button>
-        </form>
-      </div>
+        <button type="submit" class="btn-submit" id="submitBtn">إضافة العقار</button>
+        <div class="error-msg" id="formError" style="text-align:center; margin-top:12px;"></div>
+        <div class="success-msg" id="formSuccess"></div>
+      </form>
     </div>
-  </main>
+  </div>
 
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-section"><h3>عن سكني</h3><p>منصة سكني هي أكبر منصة للبحث عن السكن الطلابي في مصر.</p></div>
-    </div>
-    <div class="footer-bottom"><p>© 2026 سكني. جميع الحقوق محفوظة.</p></div>
-  </footer>
-
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="utils.js"></script>
+  <script src="auth.js"></script>
   <script src="db.js"></script>
   <script>
-    let currentUser = null;
+    var AMENITIES_MAP = {
+      wifi: { id: 'wifi', name: 'واي فاي', icon: 'fa-wifi' },
+      ac: { id: 'ac', name: 'تكييف', icon: 'fa-snowflake' },
+      fridge: { id: 'fridge', name: 'ثلاجة', icon: 'fa-box' },
+      washing: { id: 'washing', name: 'غسالة', icon: 'fa-soap' },
+      tv: { id: 'tv', name: 'تلفزيون', icon: 'fa-tv' },
+      kitchen: { id: 'kitchen', name: 'مطبخ', icon: 'fa-utensils' },
+      parking: { id: 'parking', name: 'جراج', icon: 'fa-car' },
+      security: { id: 'security', name: 'أمن', icon: 'fa-shield-alt' },
+      elevator: { id: 'elevator', name: 'مصعد', icon: 'fa-arrow-up' },
+      balcony: { id: 'balcony', name: 'بلكونة', icon: 'fa-sun' }
+    };
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      await seedDatabase();
-      currentUser = getCurrentUser();
-      if (!currentUser || currentUser.role !== 'owner') {
-        window.location.href = currentUser ? 'index.html' : 'auth.html';
+    auth.onAuthStateChanged(async function(user) {
+      if (!user) {
+        window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.pathname);
         return;
       }
-      document.getElementById('userAvatar').src = currentUser.avatar;
-      document.getElementById('propAvailable').value = new Date().toISOString().split('T')[0];
-      setupTheme();
+      var snapshot = await db.ref('users/' + user.uid + '/role').get();
+      var role = snapshot.val();
+      if (role !== 'owner' && role !== 'admin') {
+        window.location.href = 'index.html';
+        return;
+      }
     });
 
-    document.getElementById('userAvatar')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.getElementById('userDropdown').classList.toggle('show');
-    });
-    document.addEventListener('click', () => document.getElementById('userDropdown')?.classList.remove('show'));
-
-    async function submitProperty(e) {
+    async function handleSubmit(e) {
       e.preventDefault();
+      document.getElementById('formError').textContent = '';
+      document.getElementById('formSuccess').textContent = '';
+      setLoading('submitBtn', true);
 
-      const typeMap = {
-        'shared_room': 'غرفة مشتركة',
-        'private_room': 'غرفة خاصة',
-        'studio': 'استوديو',
-        'apartment': 'شقة'
-      };
+      try {
+        var user = auth.currentUser;
+        if (!user) throw new Error('مش مسجل دخول');
 
-      const amenitiesList = [
-        {id: 'wifi', name: 'واي فاي', icon: 'fa-wifi'},
-        {id: 'ac', name: 'تكييف', icon: 'fa-snowflake'},
-        {id: 'fridge', name: 'ثلاجة', icon: 'fa-box'},
-        {id: 'washing', name: 'غسالة', icon: 'fa-soap'},
-        {id: 'tv', name: 'تلفزيون', icon: 'fa-tv'},
-        {id: 'kitchen', name: 'مطبخ', icon: 'fa-utensils'},
-        {id: 'parking', name: 'جراج', icon: 'fa-car'},
-        {id: 'security', name: 'أمن', icon: 'fa-shield-alt'},
-        {id: 'elevator', name: 'مصعد', icon: 'fa-arrow-up'},
-        {id: 'balcony', name: 'بلكونة', icon: 'fa-sun'}
-      ];
+        var userSnap = await db.ref('users/' + user.uid).get();
+        var userData = userSnap.val() || {};
 
-      const selectedAmenities = [];
-      amenitiesList.forEach(a => {
-        if (document.getElementById('am_' + a.id)?.checked) selectedAmenities.push(a);
-      });
+        var type = document.getElementById('type').value;
+        var typeNames = { shared_room: 'غرفة مشتركة', private_room: 'غرفة خاصة', studio: 'استوديو', apartment: 'شقة' };
 
-      const propId = 'prop_' + Date.now();
-      const property = {
-        id: propId,
-        title: document.getElementById('propTitle').value,
-        type: document.getElementById('propType').value,
-        typeName: typeMap[document.getElementById('propType').value],
-        price: parseInt(document.getElementById('propPrice').value),
-        location: document.getElementById('propLocation').value,
-        area: document.getElementById('propLocation').value,
-        address: document.getElementById('propAddress').value,
-        rooms: parseInt(document.getElementById('propRooms').value) || 1,
-        studentsPerRoom: parseInt(document.getElementById('propStudents').value) || 1,
-        internet: document.getElementById('propInternet').checked,
-        furnished: document.getElementById('propFurnished').checked,
-        ac: document.getElementById('am_ac')?.checked || false,
-        images: [document.getElementById('propImage').value],
-        ownerId: currentUser.id,
-        ownerName: currentUser.name,
-        ownerPhone: currentUser.phone,
-        ownerAvatar: currentUser.avatar,
-        rating: 0,
-        reviewsCount: 0,
-        description: document.getElementById('propDescription').value,
-        amenities: selectedAmenities,
-        availableFrom: document.getElementById('propAvailable').value,
-        availableTo: new Date(Date.now() + 31536000000).toISOString().split('T')[0],
-        status: 'active',
-        createdAt: new Date().toISOString(),
-        views: 0,
-        coordinates: {lat: 30.0 + Math.random() * 2, lng: 31.0 + Math.random() * 2}
-      };
+        var checkedAmenities = Array.from(document.querySelectorAll('.amenities-grid input:checked'))
+          .map(function(cb) { return AMENITIES_MAP[cb.value]; })
+          .filter(function(a) { return !!a; });
 
-      await add('properties', property);
-      showToast('تم نشر العقار بنجاح! 🎉', 'success');
-      setTimeout(() => window.location.href = 'property.html?id=' + propId, 1500);
-    }
+        var property = {
+          id: 'prop_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          title: document.getElementById('title').value.trim(),
+          type: type,
+          typeName: typeNames[type],
+          price: parseInt(document.getElementById('price').value),
+          location: document.getElementById('area').value,
+          area: document.getElementById('area').value,
+          address: document.getElementById('address').value.trim(),
+          rooms: parseInt(document.getElementById('rooms').value) || 1,
+          studentsPerRoom: type === 'shared_room' ? 2 : 1,
+          internet: checkedAmenities.some(function(a) { return a.id === 'wifi'; }),
+          furnished: true,
+          ac: checkedAmenities.some(function(a) { return a.id === 'ac'; }),
+          images: ['https://picsum.photos/seed/newprop' + Date.now() + '/800/600'],
+          ownerId: user.uid,
+          ownerName: userData.name || 'مالك',
+          ownerPhone: userData.phone || '',
+          ownerAvatar: userData.avatar || '',
+          rating: 0,
+          reviewsCount: 0,
+          description: document.getElementById('description').value.trim(),
+          amenities: checkedAmenities,
+          availableFrom: document.getElementById('availableFrom').value,
+          availableTo: document.getElementById('availableTo').value || '',
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+          views: 0,
+          coordinates: { lat: 30 + Math.random() * 2, lng: 31 + Math.random() * 2 }
+        };
 
-    function setupTheme() {
-      const saved = localStorage.getItem('theme');
-      const toggleBtn = document.getElementById('themeToggle');
-      if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+        await add('properties', property);
+        document.getElementById('formSuccess').textContent = 'تم إضافة العقار بنجاح! بانتظار موافقة الإدارة.';
+        document.getElementById('addPropertyForm').reset();
+      } catch (err) {
+        document.getElementById('formError').textContent = err.message || 'فشل إضافة العقار';
+      } finally {
+        setLoading('submitBtn', false);
       }
-      if (toggleBtn) {
-        toggleBtn.addEventListener('click', function() {
-          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-          if (isDark) {
-            document.documentElement.removeAttribute('data-theme');
-            localStorage.setItem('theme', 'light');
-            toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
-          } else {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-            toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
-          }
-        });
-      }
-    }
-
-    function showToast(message, type = 'success') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-circle' };
-      toast.innerHTML = `<i class="fas ${icons[type]}"></i><span>${message}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
     }
   </script>
 </body>

@@ -3,594 +3,290 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; img-src * data:; connect-src https://*.firebaseio.com https://*.googleapis.com;">
   <title>تفاصيل العقار | سكني</title>
-  <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .navbar { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 12px 0; position: sticky; top: 0; z-index: 50; }
+    .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .logo { font-size: 22px; font-weight: 700; color: #0d6efd; text-decoration: none; }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
+    .nav-links a { color: #333; text-decoration: none; font-size: 15px; font-weight: 500; }
+    .nav-links a:hover, .nav-links a.active { color: #0d6efd; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .property-gallery { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; border-radius: 16px; overflow: hidden; margin: 24px 0; }
+    .property-gallery img { width: 100%; height: 100%; object-fit: cover; min-height: 200px; }
+    .property-gallery .main-img { grid-row: span 2; }
+    @media (max-width: 768px) { .property-gallery { grid-template-columns: 1fr; } .property-gallery .main-img { grid-row: span 1; } }
+    .property-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .property-price { font-size: 28px; font-weight: 700; color: #0d6efd; }
+    .property-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; color: #666; }
+    .property-meta span { display: flex; align-items: center; gap: 6px; }
+    .amenities-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+    .amenity-tag { background: #f8f9fa; padding: 8px 16px; border-radius: 20px; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+    .owner-card { display: flex; align-items: center; gap: 16px; padding: 20px; background: #f8f9fa; border-radius: 12px; margin-top: 24px; }
+    .owner-card img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
+    .review-card { padding: 16px; border-bottom: 1px solid #eee; }
+    .review-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .review-header img { width: 40px; height: 40px; border-radius: 50%; }
+    .stars { color: #ffc107; }
+    .btn-contact { background: #198754; color: #fff; padding: 12px 24px; border-radius: 10px; border: none; font-size: 16px; cursor: pointer; font-weight: 600; }
+    .btn-fav { background: #fff; border: 1.5px solid #dc3545; color: #dc3545; padding: 12px 24px; border-radius: 10px; font-size: 16px; cursor: pointer; font-weight: 600; }
+    .btn-fav.active { background: #dc3545; color: #fff; }
+    .section-title { font-size: 20px; margin: 32px 0 16px; }
+    .action-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+    .review-form { background: #f8f9fa; padding: 20px; border-radius: 12px; margin-top: 24px; }
+    .review-form select, .review-form textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-top: 8px; font-family: inherit; }
+    .review-form button { margin-top: 12px; }
+    .error-msg { color: #dc3545; font-size: 13px; margin-top: 6px; }
+  </style>
 </head>
 <body>
-  <div class="toast-container" id="toastContainer"></div>
-
-  <header class="header">
-    <div class="header-container">
-      <a href="index.html" class="logo">
-        <i class="fas fa-home"></i>
-        <span>سكني</span>
-      </a>
-      <nav>
-        <ul class="nav-links">
-          <li><a href="index.html">الرئيسية</a></li>
-          <li><a href="favorites.html">المفضلة</a></li>
-          <li><a href="chat.html">الرسائل</a></li>
-          <li><a href="dashboard.html">لوحة التحكم</a></li>
-        </ul>
-      </nav>
-      <div class="header-actions">
-        <button class="icon-btn theme-toggle" id="themeToggle" title="تغيير الوضع">
-          <i class="fas fa-moon"></i>
-        </button>
-        <div id="guestActions">
-          <a href="auth.html" class="btn btn-outline btn-sm">تسجيل الدخول</a>
-        </div>
-        <div class="user-menu" id="userMenu" style="display: none;">
-          <img src="" alt="User" class="user-avatar" id="userAvatar">
-          <div class="dropdown" id="userDropdown">
-            <a href="dashboard.html" class="dropdown-item"><i class="fas fa-user"></i> حسابي</a>
-            <a href="favorites.html" class="dropdown-item"><i class="fas fa-heart"></i> المفضلة</a>
-            <a href="bookings.html" class="dropdown-item"><i class="fas fa-calendar-check"></i> حجوزاتي</a>
-            <a href="chat.html" class="dropdown-item"><i class="fas fa-comments"></i> الرسائل</a>
-            <div class="dropdown-divider"></div>
-            <button class="dropdown-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
-          </div>
-        </div>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo"><i class="fas fa-home"></i> سكني</a>
+      <div class="nav-links">
+        <a href="index.html">الرئيسية</a>
+        <a href="dashboard.html">لوحة التحكم</a>
+        <a href="favorites.html">المفضلة</a>
+        <a href="auth.html" id="authLink">تسجيل الدخول</a>
       </div>
     </div>
-  </header>
+  </nav>
 
-  <main class="property-detail">
-    <div class="breadcrumb">
-      <a href="index.html">الرئيسية</a>
-      <i class="fas fa-chevron-left" style="font-size: 0.75rem;"></i>
-      <span id="breadcrumbTitle">تفاصيل العقار</span>
-    </div>
+  <div class="container" style="padding-bottom: 60px;">
+    <div id="propertyContent">
+      <div class="property-gallery" id="gallery"></div>
 
-    <div class="gallery" id="gallery">
-      <!-- Gallery will be loaded here -->
-    </div>
-
-    <div class="detail-grid">
-      <div class="detail-content">
-        <h1 id="propertyTitle">--</h1>
-        <div class="detail-meta" id="propertyMeta">
-          <!-- Meta will be loaded here -->
+      <div class="property-header">
+        <div>
+          <h1 id="propTitle">--</h1>
+          <p style="color:#666;" id="propLocation"><i class="fas fa-map-marker-alt"></i> --</p>
         </div>
+        <div class="property-price" id="propPrice">--</div>
+      </div>
 
-        <div class="detail-section">
-          <h2><i class="fas fa-info-circle"></i> وصف العقار</h2>
-          <p id="propertyDescription" style="line-height: 1.8; color: var(--gray-600);">--</p>
+      <div class="property-meta" id="propMeta"></div>
+
+      <h3 class="section-title">وصف العقار</h3>
+      <p style="line-height:1.8; color:#444;" id="propDesc">--</p>
+
+      <h3 class="section-title">الخدمات والمرافق</h3>
+      <div class="amenities-list" id="propAmenities"></div>
+
+      <div class="owner-card" id="ownerCard">
+        <img id="ownerAvatar" src="" alt="">
+        <div>
+          <h4 id="ownerName">--</h4>
+          <p style="color:#666; font-size:14px;" id="ownerPhone">--</p>
         </div>
+      </div>
 
-        <div class="detail-section">
-          <h2><i class="fas fa-concierge-bell"></i> الخدمات والمرافق</h2>
-          <div class="amenities-grid" id="amenitiesGrid">
-            <!-- Amenities will be loaded here -->
+      <div class="action-btns">
+        <button class="btn-contact" id="contactBtn" onclick="contactOwner()"><i class="fas fa-comment"></i> تواصل مع المالك</button>
+        <button class="btn-fav" id="favBtn" onclick="toggleFav()"><i class="fas fa-heart"></i> <span id="favText">أضف للمفضلة</span></button>
+      </div>
+
+      <h3 class="section-title">التقييمات والمراجعات (<span id="reviewsCount">0</span>)</h3>
+      <div id="reviewsList"></div>
+
+      <div id="addReviewSection" style="display:none;">
+        <div class="review-form">
+          <h4>أضف تقييمك</h4>
+          <div style="margin:12px 0;">
+            <label>التقييم (1-5)</label>
+            <select id="reviewRating">
+              <option value="5">5 نجوم ⭐⭐⭐⭐⭐</option>
+              <option value="4">4 نجوم ⭐⭐⭐⭐</option>
+              <option value="3">3 نجوم ⭐⭐⭐</option>
+              <option value="2">2 نجوم ⭐⭐</option>
+              <option value="1">1 نجمة ⭐</option>
+            </select>
           </div>
-        </div>
-
-        <div class="detail-section">
-          <h2><i class="fas fa-map-marker-alt"></i> الموقع</h2>
-          <p id="propertyAddress" style="margin-bottom: 1rem; color: var(--gray-600);">--</p>
-          <div style="background: var(--gray-100); border-radius: var(--radius); height: 300px; display: flex; align-items: center; justify-content: center; color: var(--gray-400);">
-            <i class="fas fa-map" style="font-size: 3rem; margin-left: 1rem;"></i>
-            <span>خريطة الموقع (Google Maps API)</span>
-          </div>
-        </div>
-
-        <div class="detail-section">
-          <h2><i class="fas fa-star"></i> التقييمات والمراجعات (<span id="reviewsCount">0</span>)</h2>
-          <div id="reviewsList">
-            <!-- Reviews will be loaded here -->
-          </div>
-        </div>
-
-        <div class="detail-section" id="addReviewSection" style="display: none;">
-          <h2><i class="fas fa-pen"></i> أضف تقييمك</h2>
-          <div class="form-group">
-            <label>التقييم</label>
-            <div style="display: flex; gap: 0.5rem; font-size: 1.5rem; color: var(--gray-300); cursor: pointer;" id="starRating">
-              <i class="fas fa-star" data-rating="1"></i>
-              <i class="fas fa-star" data-rating="2"></i>
-              <i class="fas fa-star" data-rating="3"></i>
-              <i class="fas fa-star" data-rating="4"></i>
-              <i class="fas fa-star" data-rating="5"></i>
-            </div>
-          </div>
-          <div class="form-group">
+          <div style="margin:12px 0;">
             <label>تعليقك</label>
-            <textarea class="form-input" id="reviewComment" rows="4" placeholder="شاركنا تجربتك..."></textarea>
+            <textarea id="reviewComment" rows="3" placeholder="اكتب رأيك في العقار..."></textarea>
           </div>
-          <button class="btn btn-primary" onclick="submitReview()">إرسال التقييم</button>
+          <button class="btn-contact" onclick="submitReview()">إرسال التقييم</button>
+          <div class="error-msg" id="reviewError"></div>
         </div>
-      </div>
-
-      <div class="detail-sidebar">
-        <div class="sidebar-card">
-          <div class="price-tag" id="propertyPrice">--</div>
-          <p style="color: var(--gray-500); font-size: 0.875rem;">شهرياً شامل الخدمات</p>
-
-          <div class="owner-info">
-            <img src="" alt="Owner" class="owner-avatar" id="ownerAvatar">
-            <div class="owner-details">
-              <h4 id="ownerName">--</h4>
-              <p>مالك العقار</p>
-            </div>
-          </div>
-
-          <button class="btn btn-primary btn-lg" style="width: 100%; margin-bottom: 0.75rem;" onclick="openBookingModal()">
-            <i class="fas fa-calendar-check"></i> احجز الآن
-          </button>
-          <button class="btn btn-outline" style="width: 100%; margin-bottom: 0.75rem;" onclick="contactOwner()">
-            <i class="fas fa-comment"></i> تواصل مع المالك
-          </button>
-          <button class="btn btn-secondary" style="width: 100%;" id="favBtn" onclick="togglePropertyFavorite()">
-            <i class="fas fa-heart"></i> <span id="favBtnText">إضافة للمفضلة</span>
-          </button>
-        </div>
-
-        <div class="sidebar-card">
-          <h3 style="font-weight: 700; margin-bottom: 1rem;">معلومات إضافية</h3>
-          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
-              <span style="color: var(--gray-500);">نوع السكن</span>
-              <span style="font-weight: 600;" id="detailType">--</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
-              <span style="color: var(--gray-500);">عدد الغرف</span>
-              <span style="font-weight: 600;" id="detailRooms">--</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
-              <span style="color: var(--gray-500);">الطلاب/غرفة</span>
-              <span style="font-weight: 600;" id="detailStudents">--</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
-              <span style="color: var(--gray-500);">مفروش</span>
-              <span style="font-weight: 600;" id="detailFurnished">--</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
-              <span style="color: var(--gray-500);">متاح من</span>
-              <span style="font-weight: 600;" id="detailAvailable">--</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
-              <span style="color: var(--gray-500);">المشاهدات</span>
-              <span style="font-weight: 600;" id="detailViews">--</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- Booking Modal -->
-  <div class="modal-overlay" id="bookingModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>حجز العقار</h3>
-        <button class="modal-close" onclick="closeBookingModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>تاريخ البدء</label>
-          <input type="date" class="form-input" id="bookingStartDate">
-        </div>
-        <div class="form-group">
-          <label>تاريخ الانتهاء</label>
-          <input type="date" class="form-input" id="bookingEndDate">
-        </div>
-        <div class="form-group">
-          <label>رسالة للمالك</label>
-          <textarea class="form-input" id="bookingMessage" rows="3" placeholder="أكتب رسالتك هنا..."></textarea>
-        </div>
-        <div style="background: var(--primary-light); padding: 1rem; border-radius: var(--radius); margin-top: 1rem;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span>السعر الشهري</span>
-            <span style="font-weight: 700;" id="modalPrice">--</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.125rem;">
-            <span>الإجمالي</span>
-            <span id="modalTotal">--</span>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeBookingModal()">إلغاء</button>
-        <button class="btn btn-primary" onclick="submitBooking()">تأكيد الحجز</button>
       </div>
     </div>
   </div>
 
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-section">
-        <h3>عن سكني</h3>
-        <p>منصة سكني هي أكبر منصة للبحث عن السكن الطلابي في مصر.</p>
-      </div>
-      <div class="footer-section">
-        <h3>روابط سريعة</h3>
-        <ul class="footer-links">
-          <li><a href="index.html">الرئيسية</a></li>
-          <li><a href="auth.html">تسجيل الدخول</a></li>
-          <li><a href="dashboard.html">لوحة التحكم</a></li>
-        </ul>
-      </div>
-      <div class="footer-section">
-        <h3>الدعم</h3>
-        <ul class="footer-links">
-          <li><a href="#">مركز المساعدة</a></li>
-          <li><a href="#">الأسئلة الشائعة</a></li>
-        </ul>
-      </div>
-      <div class="footer-section">
-        <h3>تواصل معنا</h3>
-        <ul class="footer-links">
-          <li><a href="mailto:support@myhousing.com"><i class="fas fa-envelope"></i> support@myhousing.com</a></li>
-          <li><a href="tel:01234567890"><i class="fas fa-phone"></i> 0123 456 7890</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p>© 2026 سكني. جميع الحقوق محفوظة.</p>
-    </div>
-  </footer>
-
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="utils.js"></script>
+  <script src="auth.js"></script>
   <script src="db.js"></script>
   <script>
-    let currentProperty = null;
-    let currentUser = null;
-    let selectedRating = 0;
+    var currentProperty = null;
+    var currentUser = null;
+    var propId = new URLSearchParams(window.location.search).get('id');
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      await initDB();
-      await generateDemoData();
-
-      currentUser = getCurrentUser();
-      updateHeader();
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const propertyId = urlParams.get('id');
-
-      if (!propertyId) {
-        window.location.href = 'index.html';
-        return;
-      }
-
-      await loadProperty(propertyId);
-      setupTheme();
-      setupStarRating();
-    });
-
-    function updateHeader() {
-      const guestActions = document.getElementById('guestActions');
-      const userMenu = document.getElementById('userMenu');
-
-      if (currentUser) {
-        guestActions.style.display = 'none';
-        userMenu.style.display = 'block';
-        document.getElementById('userAvatar').src = currentUser.avatar;
+    auth.onAuthStateChanged(async function(user) {
+      currentUser = user;
+      if (user) {
+        document.getElementById('authLink').textContent = 'تسجيل الخروج';
+        document.getElementById('authLink').onclick = function() { logoutUser(); return false; };
         document.getElementById('addReviewSection').style.display = 'block';
+        var fav = await isFavorite(user.uid, propId);
+        updateFavBtn(fav);
       } else {
-        guestActions.style.display = 'block';
-        userMenu.style.display = 'none';
+        document.getElementById('authLink').textContent = 'تسجيل الدخول';
+        document.getElementById('authLink').href = 'auth.html?redirect=' + encodeURIComponent(window.location.href);
       }
-    }
-
-    document.getElementById('userAvatar')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.getElementById('userDropdown').classList.toggle('show');
+      loadProperty();
     });
 
-    document.addEventListener('click', () => {
-      document.getElementById('userDropdown')?.classList.remove('show');
-    });
-
-    async function loadProperty(id) {
-      currentProperty = await getById('properties', id);
-      if (!currentProperty) {
-        window.location.href = 'index.html';
+    async function loadProperty() {
+      if (!propId) {
+        document.getElementById('propertyContent').innerHTML = '<p style="text-align:center; color:#666; padding:60px;">مفيش عقار محدد</p>';
         return;
       }
 
-      await incrementPropertyViews(id);
+      currentProperty = await getById('properties', propId);
+      if (!currentProperty) {
+        document.getElementById('propertyContent').innerHTML = '<p style="text-align:center; color:#666; padding:60px;">العقار مش موجود</p>';
+        return;
+      }
 
-      document.title = `${currentProperty.title} | سكني`;
-      document.getElementById('breadcrumbTitle').textContent = currentProperty.title;
-      document.getElementById('propertyTitle').textContent = currentProperty.title;
-      document.getElementById('propertyDescription').textContent = currentProperty.description;
-      document.getElementById('propertyPrice').innerHTML = `${currentProperty.price.toLocaleString()} <span>ج.م/شهر</span>`;
-      document.getElementById('ownerName').textContent = currentProperty.ownerName;
-      document.getElementById('ownerAvatar').src = currentProperty.ownerAvatar;
-      document.getElementById('propertyAddress').textContent = currentProperty.address;
-      document.getElementById('detailType').textContent = currentProperty.typeName;
-      document.getElementById('detailRooms').textContent = currentProperty.rooms + ' غرف';
-      document.getElementById('detailStudents').textContent = currentProperty.studentsPerRoom + ' طالب';
-      document.getElementById('detailFurnished').textContent = currentProperty.furnished ? 'نعم' : 'لا';
-      document.getElementById('detailAvailable').textContent = currentProperty.availableFrom;
-      document.getElementById('detailViews').textContent = (currentProperty.views || 0) + 1;
-
-      // Meta
-      document.getElementById('propertyMeta').innerHTML = `
-        <div class="detail-meta-item"><i class="fas fa-map-marker-alt"></i> ${currentProperty.location}</div>
-        <div class="detail-meta-item"><i class="fas fa-star"></i> ${currentProperty.rating} (${currentProperty.reviewsCount} تقييم)</div>
-        <div class="detail-meta-item"><i class="fas fa-bed"></i> ${currentProperty.rooms} غرف</div>
-        <div class="detail-meta-item"><i class="fas fa-user-friends"></i> ${currentProperty.studentsPerRoom} طالب/غرفة</div>
-      `;
+      await incrementPropertyViews(propId);
 
       // Gallery
-      const gallery = document.getElementById('gallery');
-      gallery.innerHTML = `
-        <div class="gallery-main">
-          <img src="${currentProperty.images[0]}" alt="${currentProperty.title}">
-        </div>
-        ${currentProperty.images.slice(1, 3).map(img => `
-          <div class="gallery-item">
-            <img src="${img}" alt="${currentProperty.title}">
-          </div>
-        `).join('')}
-        ${currentProperty.images.length > 3 ? `
-          <div class="gallery-item" onclick="showAllImages()">
-            <img src="${currentProperty.images[3]}" alt="${currentProperty.title}">
-            <div class="gallery-more">+${currentProperty.images.length - 3} صور</div>
-          </div>
-        ` : ''}
-      `;
-
-      // Amenities
-      const amenitiesGrid = document.getElementById('amenitiesGrid');
-      amenitiesGrid.innerHTML = currentProperty.amenities.map(a => `
-        <div class="amenity-item">
-          <i class="fas ${a.icon}"></i>
-          <span>${a.name}</span>
-        </div>
-      `).join('');
-
-      // Reviews
-      await loadReviews();
-
-      // Favorite button
-      if (currentUser) {
-        const isFav = await isFavorite(currentUser.id, currentProperty.id);
-        updateFavButton(isFav);
+      var gallery = document.getElementById('gallery');
+      if (currentProperty.images && currentProperty.images.length > 0) {
+        gallery.innerHTML = currentProperty.images.map(function(img, i) {
+          return '<img src="' + escapeHtml(img) + '" class="' + (i===0 ? 'main-img' : '') + '" alt="صورة العقار" onerror="this.src='https://via.placeholder.com/800x600?text=No+Image'">';
+        }).join('');
       }
 
-      // Set min date for booking
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('bookingStartDate').min = today;
-      document.getElementById('bookingEndDate').min = today;
+      // Info
+      document.getElementById('propTitle').textContent = currentProperty.title || 'عقار';
+      document.getElementById('propLocation').innerHTML = '<i class="fas fa-map-marker-alt"></i> ' + escapeHtml(currentProperty.location || '');
+      document.getElementById('propPrice').textContent = (currentProperty.price || 0) + ' ج.م/شهر';
+      document.getElementById('propDesc').textContent = currentProperty.description || '';
+
+      // Meta
+      document.getElementById('propMeta').innerHTML =
+        '<span><i class="fas fa-bed"></i> ' + (currentProperty.rooms || 1) + ' غرف</span>' +
+        '<span><i class="fas fa-users"></i> ' + (currentProperty.studentsPerRoom || 1) + ' طالب/غرفة</span>' +
+        '<span><i class="fas fa-star"></i> ' + (currentProperty.rating || 0) + ' (' + (currentProperty.reviewsCount || 0) + ' تقييم)</span>' +
+        '<span><i class="fas fa-eye"></i> ' + ((currentProperty.views || 0) + 1) + ' مشاهدة</span>' +
+        '<span><i class="fas fa-calendar"></i> متاح من ' + (currentProperty.availableFrom || '--') + '</span>';
+
+      // Amenities
+      var amenities = document.getElementById('propAmenities');
+      if (currentProperty.amenities && currentProperty.amenities.length > 0) {
+        amenities.innerHTML = currentProperty.amenities.map(function(a) {
+          return '<span class="amenity-tag"><i class="fas ' + escapeHtml(a.icon) + '"></i> ' + escapeHtml(a.name) + '</span>';
+        }).join('');
+      }
+
+      // Owner
+      document.getElementById('ownerName').textContent = escapeHtml(currentProperty.ownerName || 'مالك');
+      document.getElementById('ownerPhone').textContent = currentProperty.ownerPhone || '';
+      document.getElementById('ownerAvatar').src = currentProperty.ownerAvatar || 'https://ui-avatars.com/api/?name=Owner&background=random';
+
+      loadReviews();
     }
 
     async function loadReviews() {
-      const reviews = await getPropertyReviews(currentProperty.id);
+      var reviews = await getPropertyReviews(propId);
       document.getElementById('reviewsCount').textContent = reviews.length;
-
-      const list = document.getElementById('reviewsList');
+      var list = document.getElementById('reviewsList');
       if (reviews.length === 0) {
-        list.innerHTML = '<p style="color: var(--gray-500); text-align: center;">لا توجد تقييمات بعد. كن أول من يقيّم!</p>';
+        list.innerHTML = '<p style="color:#666;">مفيش تقييمات لسه. كن أول من يقيم!</p>';
         return;
       }
-
-      list.innerHTML = reviews.map(r => `
-        <div class="review-item">
-          <img src="${r.userAvatar}" alt="${r.userName}" class="review-avatar">
-          <div class="review-content">
-            <div class="review-header">
-              <span class="review-author">${r.userName}</span>
-              <span class="review-date">${new Date(r.createdAt).toLocaleDateString('ar-EG')}</span>
-            </div>
-            <div class="review-rating">
-              ${Array(5).fill(0).map((_, i) => `<i class="fas fa-star" style="color: ${i < r.rating ? 'var(--secondary)' : 'var(--gray-300)'}"></i>`).join('')}
-            </div>
-            <p class="review-text">${r.comment}</p>
-          </div>
-        </div>
-      `).join('');
+      list.innerHTML = reviews.map(function(r) {
+        return '<div class="review-card">' +
+          '<div class="review-header">' +
+            '<img src="' + escapeHtml(r.userAvatar || '') + '" alt="" onerror="this.src='https://ui-avatars.com/api/?name=User&background=random'">' +
+            '<div>' +
+              '<div style="font-weight:600;">' + escapeHtml(r.userName || 'مستخدم') + '</div>' +
+              '<div class="stars">' + '⭐'.repeat(r.rating || 0) + '</div>' +
+            '</div>' +
+            '<span style="margin-right:auto; color:#999; font-size:12px;">' + new Date(r.createdAt).toLocaleDateString('ar-EG') + '</span>' +
+          '</div>' +
+          '<p style="color:#444; margin-top:8px;">' + escapeHtml(r.comment || '') + '</p>' +
+        '</div>';
+      }).join('');
     }
 
-    function setupStarRating() {
-      const stars = document.querySelectorAll('#starRating i');
-      stars.forEach(star => {
-        star.addEventListener('click', () => {
-          selectedRating = parseInt(star.dataset.rating);
-          stars.forEach((s, i) => {
-            s.style.color = i < selectedRating ? 'var(--secondary)' : 'var(--gray-300)';
-          });
-        });
-      });
-    }
-
-    async function submitReview() {
+    async function toggleFav() {
       if (!currentUser) {
-        showToast('يرجى تسجيل الدخول أولاً', 'warning');
+        window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.href);
         return;
       }
-
-      if (selectedRating === 0) {
-        showToast('يرجى اختيار التقييم', 'warning');
-        return;
-      }
-
-      const comment = document.getElementById('reviewComment').value;
-      if (!comment.trim()) {
-        showToast('يرجى كتابة تعليق', 'warning');
-        return;
-      }
-
-      await add('reviews', {
-        id: `review_${Date.now()}`,
-        propertyId: currentProperty.id,
-        userId: currentUser.id,
-        userName: currentUser.name,
-        userAvatar: currentUser.avatar,
-        rating: selectedRating,
-        comment: comment,
-        createdAt: new Date().toISOString()
-      });
-
-      // Update property rating
-      const reviews = await getPropertyReviews(currentProperty.id);
-      const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-      currentProperty.rating = parseFloat(avgRating.toFixed(1));
-      currentProperty.reviewsCount = reviews.length;
-      await put('properties', currentProperty);
-
-      showToast('تم إضافة التقييم بنجاح', 'success');
-      document.getElementById('reviewComment').value = '';
-      selectedRating = 0;
-      document.querySelectorAll('#starRating i').forEach(s => s.style.color = 'var(--gray-300)');
-      await loadReviews();
-    }
-
-    async function togglePropertyFavorite() {
-      if (!currentUser) {
-        showToast('يرجى تسجيل الدخول أولاً', 'warning');
-        return;
-      }
-
-      const isFav = await toggleFavorite(currentUser.id, currentProperty.id);
-      updateFavButton(isFav);
+      var isFav = await toggleFavorite(currentUser.uid, propId);
+      updateFavBtn(isFav);
       showToast(isFav ? 'تمت الإضافة للمفضلة' : 'تمت الإزالة من المفضلة', 'success');
     }
 
-    function updateFavButton(isFav) {
-      const btn = document.getElementById('favBtn');
-      const text = document.getElementById('favBtnText');
+    function updateFavBtn(isFav) {
+      var btn = document.getElementById('favBtn');
+      var text = document.getElementById('favText');
       if (isFav) {
-        btn.classList.add('btn-danger');
-        btn.classList.remove('btn-secondary');
-        text.textContent = 'إزالة من المفضلة';
+        btn.classList.add('active');
+        text.textContent = 'في المفضلة';
       } else {
-        btn.classList.remove('btn-danger');
-        btn.classList.add('btn-secondary');
-        text.textContent = 'إضافة للمفضلة';
+        btn.classList.remove('active');
+        text.textContent = 'أضف للمفضلة';
       }
-    }
-
-    function openBookingModal() {
-      if (!currentUser) {
-        showToast('يرجى تسجيل الدخول أولاً', 'warning');
-        return;
-      }
-
-      document.getElementById('modalPrice').textContent = currentProperty.price.toLocaleString() + ' ج.م';
-      document.getElementById('bookingModal').classList.add('show');
-    }
-
-    function closeBookingModal() {
-      document.getElementById('bookingModal').classList.remove('show');
     }
 
     function contactOwner() {
       if (!currentUser) {
-        showToast('يرجى تسجيل الدخول أولاً', 'warning');
+        window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.href);
         return;
       }
-      window.location.href = `chat.html?owner=${currentProperty.ownerId}&property=${currentProperty.id}`;
+      window.location.href = 'chat.html?owner=' + currentProperty.ownerId + '&property=' + propId;
     }
 
-    document.getElementById('bookingStartDate').addEventListener('change', calculateTotal);
-    document.getElementById('bookingEndDate').addEventListener('change', calculateTotal);
+    async function submitReview() {
+      var rating = parseInt(document.getElementById('reviewRating').value);
+      var comment = document.getElementById('reviewComment').value.trim();
+      var errorEl = document.getElementById('reviewError');
+      errorEl.textContent = '';
 
-    function calculateTotal() {
-      const start = new Date(document.getElementById('bookingStartDate').value);
-      const end = new Date(document.getElementById('bookingEndDate').value);
-
-      if (start && end && end > start) {
-        const months = Math.ceil((end - start) / (1000 * 60 * 60 * 24 * 30));
-        const total = months * currentProperty.price;
-        document.getElementById('modalTotal').textContent = total.toLocaleString() + ' ج.م';
-      }
-    }
-
-    async function submitBooking() {
-      const startDate = document.getElementById('bookingStartDate').value;
-      const endDate = document.getElementById('bookingEndDate').value;
-      const message = document.getElementById('bookingMessage').value;
-
-      if (!startDate || !endDate) {
-        showToast('يرجى اختيار التواريخ', 'warning');
+      if (!comment) {
+        errorEl.textContent = 'اكتب تعليقك الأول';
         return;
       }
 
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+      try {
+        var userSnap = await db.ref('users/' + currentUser.uid).get();
+        var userData = userSnap.val() || {};
 
-      if (end <= start) {
-        showToast('تاريخ الانتهاء يجب أن يكون بعد تاريخ البدء', 'warning');
-        return;
-      }
-
-      const months = Math.ceil((end - start) / (1000 * 60 * 60 * 24 * 30));
-      const total = months * currentProperty.price;
-
-      await add('bookings', {
-        id: `booking_${Date.now()}`,
-        propertyId: currentProperty.id,
-        propertyTitle: currentProperty.title,
-        propertyImage: currentProperty.images[0],
-        userId: currentUser.id,
-        userName: currentUser.name,
-        userPhone: currentUser.phone,
-        ownerId: currentProperty.ownerId,
-        ownerName: currentProperty.ownerName,
-        status: 'pending',
-        startDate: startDate,
-        endDate: endDate,
-        totalPrice: total,
-        message: message,
-        createdAt: new Date().toISOString()
-      });
-
-      showToast('تم إرسال طلب الحجز بنجاح', 'success');
-      closeBookingModal();
-    }
-
-    function showAllImages() {
-      showToast('معرض الصور الكامل - قيد التطوير', 'info');
-    }
-
-    // Theme
-    function setupTheme() {
-      const saved = localStorage.getItem('theme');
-      const toggleBtn = document.getElementById('themeToggle');
-      if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
-      }
-      if (toggleBtn) {
-        toggleBtn.addEventListener('click', function() {
-          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-          if (isDark) {
-            document.documentElement.removeAttribute('data-theme');
-            localStorage.setItem('theme', 'light');
-            toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
-          } else {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-            toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
-          }
+        await add('reviews', {
+          id: 'rev_' + Date.now(),
+          propertyId: propId,
+          userId: currentUser.uid,
+          userName: userData.name || 'مستخدم',
+          userAvatar: userData.avatar || '',
+          rating: rating,
+          comment: comment,
+          createdAt: new Date().toISOString()
         });
-      }
-    }
 
-    function showToast(message, type = 'success') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-circle', info: 'fa-info-circle' };
-      toast.innerHTML = `<i class="fas ${icons[type]}"></i><span>${message}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(-20px)';
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
+        // Update property rating
+        var allReviews = await getPropertyReviews(propId);
+        var avg = allReviews.reduce(function(s, r) { return s + (r.rating || 0); }, 0) / allReviews.length;
+        currentProperty.rating = parseFloat(avg.toFixed(1));
+        currentProperty.reviewsCount = allReviews.length;
+        await put('properties', currentProperty);
+
+        document.getElementById('reviewComment').value = '';
+        loadReviews();
+        loadProperty();
+        showToast('تم إرسال التقييم بنجاح!', 'success');
+      } catch (e) {
+        errorEl.textContent = 'فشل إرسال التقييم: ' + e.message;
+      }
     }
   </script>
 </body>
