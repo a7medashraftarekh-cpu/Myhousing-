@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>لوحة الإدارة | سكني</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -236,22 +236,25 @@
 
     function setupTheme() {
       const saved = localStorage.getItem('theme');
+      const toggleBtn = document.getElementById('themeToggle');
       if (saved === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
-        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+        if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
       }
-      document.getElementById('themeToggle').addEventListener('click', () => {
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        if (isDark) {
-          document.documentElement.removeAttribute('data-theme');
-          localStorage.setItem('theme', 'light');
-          document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
-        } else {
-          document.documentElement.setAttribute('data-theme', 'dark');
-          localStorage.setItem('theme', 'dark');
-          document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
-        }
-      });
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          if (isDark) {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+            toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+          } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+            toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+          }
+        });
+      }
     }
 
     function showToast(message, type = 'success') {

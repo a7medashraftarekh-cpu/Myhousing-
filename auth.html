@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تسجيل الدخول | سكني</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -121,10 +121,10 @@
     document.addEventListener('DOMContentLoaded', async () => {
       await seedDatabase();
 
-      // If already logged in, redirect to dashboard
+      // If already logged in, go to homepage
       const user = getCurrentUser();
       if (user) {
-        redirectAfterLogin(user);
+        window.location.href = 'index.html';
       }
 
       setupTheme();
@@ -134,7 +134,7 @@
       if (user.role === 'admin') {
         window.location.href = 'admin.html';
       } else {
-        window.location.href = 'dashboard.html';
+        window.location.href = 'index.html';
       }
     }
 
